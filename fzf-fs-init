@@ -216,6 +216,288 @@ FLAGS
     __fzffs_util_echoE "Creating ${FZF_FS_CONFIG_DIR}/env/flags.user" 1>&2;
     __fzffs_util_echon "builtin . \"\${FZF_FS_CONFIG_DIR}/env/flags.default\"" > "${FZF_FS_CONFIG_DIR}/env/flags.user";
 
+    __fzffs_util_echoE "Creating ${FZF_FS_CONFIG_DIR}/env/browser_keybindings.default" 1>&2;
+    builtin unset -v keybindings_default;
+    {
+        builtin typeset keybindings_default="$(</dev/fd/0)"
+    }  <<-'KEYBINDINGS'
+__fzffs_keybindings ()
+{
+    builtin unset -v horiz;
+    builtin typeset horiz="$(command printf '%*s' "$((${COLUMNS:-$(command tput cols)} - 4))" '')";
+    {
+        key="$(command sed -n "/^${1}/ s/^.// p" | command fzf -e +i --no-sort --tac --prompt= --inline-info --expect="$2")"
+    }  <<-KEY
+${1}key     command
+${1}$(command printf '%s\n' "${horiz// /-}")
+g-       cd "\$OLDPWD"              "$OLDPWD"
+g/       cd /
+g1       cd_up 1
+g2       cd_up 2
+gL       cd /var/log
+gM       cd /mnt
+gd       cd /dev
+ge       cd /etc
+gh       cd "\$HOME"                "$HOME"
+gl       cd /usr/lib
+gm       cd /media
+go       cd /opt
+gr       cd /
+gs       cd /srv
+gu       cd /usr
+gv       cd /var
+g~       cd "\$HOME"                "$HOME"
+oA       set/sort_atime;            set/sort_reverse_true
+oB       set/sort_basename;         set/sort_reverse_false
+oC       set/sort_ctime;            set/sort_reverse_true
+oM       set/sort_mtime;            set/sort_reverse_false
+oS       set/sort_size;             set/sort_reverse_true
+oa       set/sort_atime;            set/sort_reverse_false
+ob       set/sort_basename;         set/sort_reverse_true
+oc       set/sort_ctime;            set/sort_reverse_false
+om       set/sort_mtime;            set/sort_reverse_true
+or       set/sort_reverse_toggle
+os       set/sort_size;             set/sort_reverse_false
+os       set/sort_type;             set/sort_reverse_true
+ot       set/sort_type;             set/sort_reverse_false
+pd       set/opener_default         "$FZF_FS_OPENER_DEFAULT"
+pe       set/opener_editor          "$EDITOR"
+pi       set/opener_interactive
+pp       set/opener_pager           "$PAGER"
+qq       quit
+q!       quit!
+sa       set/show_atime
+sc       set/show_ctime
+sm       set/show_mtime
+zH       set/deference_commandline
+zL       set/deference
+zc       set/lc_collate_c
+zh       set/show_hidden_toggle
+zl       set/lc_collate_lang        "$LANG"
+zs       set/os_interactive
+KEY
+
+}
+
+builtin unset -v c;
+builtin typeset -a c;
+
+case "$key" in
+    [/?])
+        FZF_FS_MODE=search
+    ;;
+    :)
+        c='console'
+    ;;
+    E)
+        c='edit "${browser[6]}"'
+    ;;
+    P)
+        c='page "${browser[6]}"'
+    ;;
+    O)
+        c='open_with'
+    ;;
+    S)
+        c='shell'
+    ;;
+    T)
+        c='terminal'
+    ;;
+    alt-h)
+        c='cd_up 2'
+    ;;
+    ctrl-c)
+        c='set/clicolor_force_toggle'
+    ;;
+    ctrl-h)
+        c='set/show_hidden_toggle'
+    ;;
+    ctrl-r)
+        c='reload'
+    ;;
+    g)
+        __fzffs_keybindings "$key" "L,M,1,2,r,/,d,e,h,l,m,o,s,u,v,-,~";
+        case "${key/$'\n'/}" in
+            -*)
+                c='cd "$OLDPWD"'
+            ;;
+            1*)
+                c='cd_up 1'
+            ;;
+            2*)
+                c='cd_up 2'
+            ;;
+            L*)
+                c='cd /var/log'
+            ;;
+            M*)
+                c='cd /mnt'
+            ;;
+            [h~]*)
+                c='cd "$HOME"'
+            ;;
+            [r/]*)
+                c='cd /'
+            ;;
+            d*)
+                c='cd /dev'
+            ;;
+            e*)
+                c='cd /etc'
+            ;;
+            l*)
+                c='cd /usr/lib'
+            ;;
+            m*)
+                c='cd /media'
+            ;;
+            o*)
+                c='cd /opt'
+            ;;
+            s*)
+                c='cd /srv'
+            ;;
+            u*)
+                c='cd /usr'
+            ;;
+            v*)
+                c='cd /var'
+            ;;
+        esac
+    ;;
+    h)
+        c='cd_up 1'
+    ;;
+    o)
+        __fzffs_keybindings "$key" "A,B,C,M,S,T,a,b,c,m,r,s,t";
+        case "${key/$'\n'/}" in
+            A*)
+                c[0]='set/sort_atime';
+                c[1]='set/sort_reverse_false'
+            ;;
+            B*)
+                c[0]='set/sort_basename';
+                c[1]='set/sort_reverse_false'
+            ;;
+            C*)
+                c[0]='set/sort_ctime';
+                c[1]='set/sort_reverse_false'
+            ;;
+            M*)
+                c[0]='set/sort_mtime';
+                c[1]='set/sort_reverse_false'
+            ;;
+            S*)
+                c[0]='set/sort_size';
+                c[1]='set/sort_reverse_false'
+            ;;
+            T*)
+                c[0]='set/sort_type';
+                c[1]='set/sort_reverse_false'
+            ;;
+            a*)
+                c[0]='set/sort_atime';
+                c[1]='set/sort_reverse_true'
+            ;;
+            b*)
+                c[0]='set/sort_basename';
+                c[1]='set/sort_reverse_true'
+            ;;
+            c*)
+                c[0]='set/sort_ctime';
+                c[1]='set/sort_reverse_true'
+            ;;
+            m*)
+                c[0]='set/sort_mtime';
+                c[1]='set/sort_reverse_true'
+            ;;
+            r*)
+                c='set/sort_reverse_toggle'
+            ;;
+            s*)
+                c[0]='set/sort_size';
+                c[1]='set/sort_reverse_true'
+            ;;
+            t*)
+                c[0]='set/sort_type';
+                c[1]='set/sort_reverse_true'
+            ;;
+        esac
+    ;;
+    p)
+        __fzffs_keybindings "$key" "d,e,i,p";
+        case "${key/$'\n'/}" in
+            d*)
+                c='set/opener_default'
+            ;;
+            e*)
+                c='set/opener_editor'
+            ;;
+            i*)
+                c='set/opener_interactive'
+            ;;
+            p*)
+                c='set/opener_pager'
+            ;;
+        esac
+    ;;
+    q)
+        __fzffs_keybindings "$key" "q,!";
+        case "${key/$'\n'/}" in
+            !*)
+                c='quit!'
+            ;;
+            q*)
+                c='quit'
+            ;;
+        esac
+    ;;
+    s)
+        __fzffs_keybindings "$key" "a,c,m";
+        case "${key/$'\n'/}" in
+            a*)
+                c='set/show_atime'
+            ;;
+            c*)
+                c='set/show_ctime'
+            ;;
+            m*)
+                c='set/show_mtime'
+            ;;
+        esac
+    ;;
+    z)
+        __fzffs_keybindings "$key" "H,L,c,h,l,s";
+        case "${key/$'\n'/}" in
+            H*)
+                c='set/deference_commandline'
+            ;;
+            L*)
+                c='set/deference'
+            ;;
+            c*)
+                c='set/lc_collate_c'
+            ;;
+            h*)
+                c='set/show_hidden_toggle'
+            ;;
+            l*)
+                c='set/lc_collate_lang'
+            ;;
+            s*)
+                c='set/os_interactive'
+            ;;
+        esac
+    ;;
+esac
+KEYBINDINGS
+
+    __fzffs_util_echoE "$keybindings_default" > "${FZF_FS_CONFIG_DIR}/env/browser_keybindings.default";
+
+    __fzffs_util_echoE "Creating ${FZF_FS_CONFIG_DIR}/env/browser_keybindings.user" 1>&2;
+    __fzffs_util_echon "builtin . \"\${FZF_FS_CONFIG_DIR}/env/browser_keybindings.default\"" > "${FZF_FS_CONFIG_DIR}/env/browser_keybindings.user";
+
     __fzffs_util_echoE "Creating ${FZF_FS_CONFIG_DIR}/env/visual_shortcuts.default" 1>&2;
     builtin unset -v visual_shortcuts;
     {
