@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-console_func () 
+__fzffs_console_cd () 
 { 
     builtin unset -v console_args console_prompt;
     builtin typeset console_args="$*" console_prompt="${console_file##*/}";
@@ -23,5 +23,8 @@ console_func ()
         __fzffs_util_parse_flags "$*" && builtin shift 1;
         __fzffs_util_parse_macros "$*"
     };
-    browser_pwd="$(builtin eval __fzffs_util_echon "$console_args")"
+    browser[4]="$(builtin eval __fzffs_util_echon "$console_args")"
+    builtin cd "${browser[4]}"
 }
+__fzffs_console_cd "$@"
+builtin unset -f __fzffs_console_cd

@@ -2,13 +2,13 @@ flags_func ()
 {
     case "$REPLY" in
         "f")
-            console_fork_background=console_fork_background
+            console[5]=1
         ;;
         "k")
-            console_keep=console_keep
+            console[6]=1
         ;;
         "t")
-            console_terminal=console_terminal
+            console[7]=1
         ;;
         *)
             builtin :

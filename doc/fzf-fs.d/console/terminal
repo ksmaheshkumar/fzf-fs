@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
-console_func () 
+__fzffs_console_terminal () 
 { 
     ( command ${SHELL:-sh} -c ${TERMINAL} & )
 }
+__fzffs_console_terminal "$@"
+builtin unset -f __fzffs_console_terminal

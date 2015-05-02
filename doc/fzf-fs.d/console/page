@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-console_func () 
+__fzffs_console_page () 
 { 
     builtin unset -v console_args console_prompt;
     builtin typeset console_args="$*" console_prompt="${console_file##*/}";
@@ -25,3 +25,5 @@ console_func ()
     };
     builtin eval ${PAGER} "$console_args"
 }
+__fzffs_console_page "$@"
+builtin unset -f __fzffs_console_page

@@ -38,7 +38,7 @@ __fzffs_init ()
         __fzffs_util_echoE "${source}:Error:80: Directory existing: '${FZF_FS_CONFIG_DIR}'" 1>&2;
         builtin return 80;
     else
-        command mkdir -p -m 755 "${FZF_FS_CONFIG_DIR}"/{console/set,env};
+        command mkdir -p -m 755 "${FZF_FS_CONFIG_DIR}"/{browser,console/set,env,marks,visual};
         __fzffs_util_echoE "${source}:Info: Initializing empty fzf-fs config directory in ${FZF_FS_CONFIG_DIR}" 1>&2;
     fi;
 
@@ -82,54 +82,49 @@ __fzffs_init ()
         ;;
     esac;
 
-    __fzffs_util_echoE "Creating ${FZF_FS_CONFIG_DIR}/env/console_shortcuts.default" 1>&2;
-    __fzffs_util_echoE "Creating ${FZF_FS_CONFIG_DIR}/env/console_shortcuts.user" 1>&2;
     builtin unset -v f v s;
     builtin typeset f= v= s=;
     while IFS='|' builtin read -r f v s; do
         __fzffs_util_echoE "Creating ${FZF_FS_CONFIG_DIR}${f}" 1>&2;
         __fzffs_util_echoE "$v" > "${FZF_FS_CONFIG_DIR}${f}";
-        __fzffs_util_echoE "[${s:- }] ${f#*/*/}" >> "${FZF_FS_CONFIG_DIR}/env/console_shortcuts.default";
-        __fzffs_util_echoE "[${s:- }] ${f#*/*/}" >> "${FZF_FS_CONFIG_DIR}/env/console_shortcuts.user";
         f=;
         v=;
         s=;
     done  <<-'SETTINGS'
-/console/set/clicolor_force_false|console="FZF_FS_LS_CLICOLOR=0"
-/console/set/clicolor_force_toggle|console="FZF_FS_LS_CLICOLOR=$((FZF_FS_LS_CLICOLOR ? 0 : 1))"
-/console/set/clicolor_force_true|console="FZF_FS_LS_CLICOLOR=1"
-/console/set/deference_commandline|console="FZF_FS_LS_SYMLINK=H"
-/console/set/deference|console="FZF_FS_LS_SYMLINK=L"
-/console/set/lc_collate_c|console="LC_COLLATE=C"
-/console/set/lc_collate_lang|console="LC_COLLATE=$LANG"
-/console/set/opener_console_default|console="FZF_FS_OPENER_CONSOLE=$FZF_FS_OPENER_CONSOLE_DEFAULT"|d
-/console/set/opener_console_editor|console="FZF_FS_OPENER_CONSOLE=$EDITOR"|e
-/console/set/opener_console_pager|console="FZF_FS_OPENER_CONSOLE=$PAGER"|p
-/console/set/opener_default|console="FZF_FS_OPENER=$FZF_FS_OPENER_DEFAULT"|d
-/console/set/opener_editor|console="FZF_FS_OPENER=$EDITOR"|e
-/console/set/opener_interactive|console="FZF_FS_OPENER=$(command fzf --prompt="FZF_FS_OPENER " --print-query <<< "")"|oi
-/console/set/opener_pager|console="FZF_FS_OPENER=$PAGER"|p
-/console/set/os_interactive|console="FZF_FS_OS=$(command fzf --prompt="uname -s => " --print-query <<< "")"
-/console/set/show_atime|console="FZF_FS_LS_OPTS=u"
-/console/set/show_ctime|console="FZF_FS_LS_OPTS=c"
-/console/set/show_hidden_false|console="FZF_FS_LS_HIDDEN=0"
-/console/set/show_hidden_toggle|console="FZF_FS_LS_HIDDEN=$((FZF_FS_LS_HIDDEN ? 0 : 1))"
-/console/set/show_hidden_true|console="FZF_FS_LS_HIDDEN=1"
-/console/set/show_mtime|console="FZF_FS_LS_OPTS="|om
-/console/set/sort_atime|console="FZF_FS_LS_OPTS=ut"|oa
-/console/set/sort_basename|console="FZF_FS_LS_OPTS="|ob
-/console/set/sort_ctime|console="FZF_FS_LS_OPTS=ct"|oc
-/console/set/sort_interactive|console="FZF_FS_SORT=$(command fzf --prompt="sort " --print-query <<< "")"|si
-/console/set/sort_mtime|console=FZF_FS_LS_OPTS="t"
-/console/set/sort_reverse_false|console="FZF_FS_LS_REVERSE=0"
-/console/set/sort_reverse_toggle|console="FZF_FS_LS_REVERSE=$((FZF_FS_LS_REVERSE ? 0 : 1))"|or
-/console/set/sort_reverse_true|console="FZF_FS_LS_REVERSE=1"
-/console/set/sort_size|console="FZF_FS_SORT=k6,6n"|os
-/console/set/sort_type|console="FZF_FS_SORT=k2"|ot
+/console/set/clicolor_force_false|FZF_FS_LS_CLICOLOR=0
+/console/set/clicolor_force_toggle|FZF_FS_LS_CLICOLOR="$((FZF_FS_LS_CLICOLOR ? 0 : 1))"
+/console/set/clicolor_force_true|FZF_FS_LS_CLICOLOR=1
+/console/set/deference_commandline|FZF_FS_LS_SYMLINK="H"
+/console/set/deference|FZF_FS_LS_SYMLINK="L"
+/console/set/lc_collate_c|LC_COLLATE="C"
+/console/set/lc_collate_lang|LC_COLLATE="$LANG"
+/console/set/mark_invert_false|FZF_FS_MARK_INVERT=0
+/console/set/mark_invert_toggle|FZF_FS_MARK_INVERT="$((FZF_FS_MARK_INVERT ? 0 : 1))"
+/console/set/mark_invert_true|FZF_FS_MARK_INVERT=1
+/console/set/mark_method_deselect|FZF_FS_MARK_METHOD="D"
+/console/set/mark_method_select|FZF_FS_MARK_METHOD="S"
+/console/set/opener_default|FZF_FS_OPENER="$FZF_FS_OPENER_DEFAULT"|d
+/console/set/opener_editor|FZF_FS_OPENER="$EDITOR"|e
+/console/set/opener_interactive|FZF_FS_OPENER="$(command fzf --prompt="FZF_FS_OPENER " --print-query <<< "")"|oi
+/console/set/opener_pager|FZF_FS_OPENER="$PAGER"|p
+/console/set/os_interactive|FZF_FS_OS="$(command fzf --prompt="uname -s => " --print-query <<< "")"
+/console/set/show_atime|FZF_FS_LS_OPTS="u"
+/console/set/show_ctime|FZF_FS_LS_OPTS="c"
+/console/set/show_hidden_false|FZF_FS_LS_HIDDEN=0
+/console/set/show_hidden_toggle|FZF_FS_LS_HIDDEN="$((FZF_FS_LS_HIDDEN ? 0 : 1))"
+/console/set/show_hidden_true|FZF_FS_LS_HIDDEN=1
+/console/set/show_mtime|FZF_FS_LS_OPTS=|om
+/console/set/sort_atime|FZF_FS_LS_OPTS="ut"|oa
+/console/set/sort_basename|FZF_FS_LS_OPTS=|ob
+/console/set/sort_ctime|FZF_FS_LS_OPTS="ct"|oc
+/console/set/sort_interactive|FZF_FS_SORT="$(command fzf --prompt="sort " --print-query <<< "")"|si
+/console/set/sort_mtime|FZF_FS_LS_OPTS="t"
+/console/set/sort_reverse_false|FZF_FS_LS_REVERSE=0
+/console/set/sort_reverse_toggle|FZF_FS_LS_REVERSE="$((FZF_FS_LS_REVERSE ? 0 : 1))"|or
+/console/set/sort_reverse_true|FZF_FS_LS_REVERSE=1
+/console/set/sort_size|FZF_FS_SORT="k6,6n"|os
+/console/set/sort_type|FZF_FS_SORT="k2"|ot
 SETTINGS
-
-    __fzffs_util_echoE "[q] quit" >> "${FZF_FS_CONFIG_DIR}/env/console_shortcuts.default";
-    __fzffs_util_echoE "[q] quit" >> "${FZF_FS_CONFIG_DIR}/env/console_shortcuts.user";
 
     __fzffs_util_echoE "Creating ${FZF_FS_CONFIG_DIR}/env/env.default" 1>&2;
     builtin unset -v env;
@@ -142,16 +137,20 @@ builtin typeset FZF_FS_DEFAULT_OPTS="${FZF_FS_DEFAULT_OPTS:--x -i}"
 builtin typeset FZF_FS_LS_OPTS="${FZF_FS_LS_OPTS:+${FZF_FS_LS_OPTS}}"
 builtin typeset FZF_FS_SORT="${FZF_FS_SORT:+${FZF_FS_SORT}}"
 builtin typeset FZF_FS_LS_SYMLINK="$FZF_FS_LS_SYMLINK"
+builtin typeset FZF_FS_MARK_METHOD="${FZF_FS_MARK_METHOD:-S}"
+builtin typeset FZF_FS_MODE="${FZF_FS_MODE:-normal}"
+builtin typeset FZF_FS_BUFFER="${FZF_FS_BUFFER:-browser}"
+builtin typeset FZF_FS_BUFFER_OLD="$FZF_FS_BUFFER_OLD"
 builtin typeset PAGER="${PAGER:-less -R}"
 builtin typeset TERMINAL="${TERMINAL:-xterm}"
+builtin typeset -a "FZF_FS_CONSOLE_COMMAND=("${FZF_FS_CONSOLE_COMMAND[@]}")"
 builtin typeset -i FZF_FS_LS_CLICOLOR="${FZF_FS_LS_CLICOLOR:-1}"
 builtin typeset -i FZF_FS_LS_HIDDEN="${FZF_FS_LS_HIDDEN:-1}"
 builtin typeset -i FZF_FS_LS_REVERSE="${FZF_FS_LS_REVERSE:-1}"
+builtin typeset -i FZF_FS_MARK_INVERT="${FZF_FS_MARK_INVERT:-0}"
 builtin typeset -x FZF_DEFAULT_COMMAND_OLD="${FZF_DEFAULT_COMMAND:+${FZF_DEFAULT_COMMAND}}"
 builtin typeset -x FZF_FS_DEFAULT_OPTS_OLD="${FZF_DEFAULT_OPTS:+${FZF_DEFAULT_OPTS}}"
 builtin typeset -x LC_COLLATE_OLD="$LC_COLLATE"
-builtin typeset FZF_FS_OPENER_CONSOLE="$FZF_FS_OPENER_CONSOLE"
-builtin typeset FZF_FS_OPENER_CONSOLE_DEFAULT="$FZF_FS_OPENER_CONSOLE"
 builtin typeset FZF_FS_OPENER="${FZF_FS_OPENER:-${PAGER}}"
 builtin typeset FZF_FS_OPENER_DEFAULT="$FZF_FS_OPENER"
 builtin typeset -x FZF_DEFAULT_COMMAND="command echo uups"
@@ -174,13 +173,13 @@ ENV
     {
         builtin typeset macros="$(</dev/fd/0)"
     }  <<-'MACROS'
-console_args="${console_args//[%][b]/${FZF_FS_CONFIG_DIR}/env/browser_shortcuts.user}"
-console_args="${console_args//[%][c]/${FZF_FS_CONFIG_DIR}/env/console_shortcuts.user}"
-console_args="${console_args//[%][d]/$browser_pwd}"
-console_args="${console_args//[%][e]/${FZF_FS_CONFIG_DIR}/env/env.user}"
-console_args="${console_args//[%][f]/${FZF_FS_CONFIG_DIR}/env/flags.user}"
-console_args="${console_args//[%][m]/${FZF_FS_CONFIG_DIR}/env/macros.user}"
-console_args="${console_args//[%][s]/$browser_file}"
+console[2]="${console[2]//[%][b]/${FZF_FS_CONFIG_DIR}/env/browser_shortcuts.user}"
+console[2]="${console[2]//[%][c]/${FZF_FS_CONFIG_DIR}/env/console_shortcuts.user}"
+console[2]="${console[2]//[%][d]/${browser[4]}}"
+console[2]="${console[2]//[%][e]/${FZF_FS_CONFIG_DIR}/env/env.user}"
+console[2]="${console[2]//[%][f]/${FZF_FS_CONFIG_DIR}/env/flags.user}"
+console[2]="${console[2]//[%][m]/${FZF_FS_CONFIG_DIR}/env/macros.user}"
+console[2]="${console[2]//[%][s]/${browser[6]}}"
 MACROS
 
     __fzffs_util_echoE "$macros" >> "${FZF_FS_CONFIG_DIR}/env/macros.default";
@@ -197,13 +196,13 @@ flags_func ()
 {
     case "$REPLY" in
         "f")
-            console_fork_background=console_fork_background
+            console[5]=1
         ;;
         "k")
-            console_keep=console_keep
+            console[6]=1
         ;;
         "t")
-            console_terminal=console_terminal
+            console[7]=1
         ;;
         *)
             builtin :
@@ -217,23 +216,21 @@ FLAGS
     __fzffs_util_echoE "Creating ${FZF_FS_CONFIG_DIR}/env/flags.user" 1>&2;
     __fzffs_util_echon "builtin . \"\${FZF_FS_CONFIG_DIR}/env/flags.default\"" > "${FZF_FS_CONFIG_DIR}/env/flags.user";
 
-    __fzffs_util_echoE "Creating ${FZF_FS_CONFIG_DIR}/env/browser_shortcuts.default" 1>&2;
-    builtin unset -v browser_shortcuts;
+    __fzffs_util_echoE "Creating ${FZF_FS_CONFIG_DIR}/env/visual_shortcuts.default" 1>&2;
+    builtin unset -v visual_shortcuts;
     {
-        builtin typeset browser_shortcuts="$(</dev/fd/0)"
-    }  <<-'BROWSER_SHORTCUTS'
-_ [!] console/shell
-_ [/] console/cd $browser_root
-_ [:] console
-_ [q] quit
-_ [~] console/cd $HOME
-_ [-] console/cd $OLDPWD
-BROWSER_SHORTCUTS
+        builtin typeset visual_shortcuts="$(</dev/fd/0)"
+    }  <<-'VISUAL_SHORTCUTS'
+[q] quit
+[s] console/set/mark_method_select
+[d] console/set/mark_method_deselect
+[:] console
+VISUAL_SHORTCUTS
 
-    __fzffs_util_echoE "$browser_shortcuts" > "${FZF_FS_CONFIG_DIR}/env/browser_shortcuts.default";
+    __fzffs_util_echoE "$visual_shortcuts" > "${FZF_FS_CONFIG_DIR}/env/visual_shortcuts.default";
 
-    __fzffs_util_echoE "Creating ${FZF_FS_CONFIG_DIR}/env/browser_shortcuts.user" 1>&2;
-    __fzffs_util_echoE "$browser_shortcuts" > "${FZF_FS_CONFIG_DIR}/env/browser_shortcuts.user";
+    __fzffs_util_echoE "Creating ${FZF_FS_CONFIG_DIR}/env/visual_shortcuts.user" 1>&2;
+    __fzffs_util_echoE "$visual_shortcuts" > "${FZF_FS_CONFIG_DIR}/env/visual_shortcuts.user";
 
     function __fzffs_console_edit ()
     {
@@ -262,10 +259,37 @@ BROWSER_SHORTCUTS
         builtin eval ${EDITOR} "$console_args"
     };
 
+    __fzffs_console_cd_up ()
+    {
+        console[2]="$*" console_prompt="${console[1]##*/}";
+        [[ -n "${console[2]}" || "${console[3]}" -eq 0 ]] || {
+            if [[ -n "$KSH_VERSION" ]]; then
+                console[2]="$(command fzf --prompt=":${console_prompt} " --print-query <<< "")";
+            else
+                command tput sc;
+                command tput cup 99999 0;
+                if [[ -n "$ZSH_VERSION" ]]; then
+                    builtin vared -p ":${console_prompt} " tmp;
+                else
+                    builtin read -re -p ":${console_prompt} " tmp;
+                fi;
+                console[2]="$tmp"
+                command tput rc;
+                command tput ed;
+            fi
+        };
+        [[ -z "${console[2]//[0-9]/}" ]] && {
+            builtin unset -v s
+            builtin typeset s="$(command printf '%*s' "${console[2]:-1}" "")"
+            builtin cd "$(command printf '%s' ${s// /..\/})"
+            browser[4]="$PWD"
+        }
+    };
+
     function __fzffs_util_rename_function ()
     {
         builtin test -n "$(builtin typeset -f "${1:-1}")" || builtin return 1;
-        builtin eval "${_/${1}/${2:-1}}" && builtin unset -f "$1"
+        builtin eval "${_/${1}/${2:-1}}" #&& builtin unset -f "$1"
     };
 
     {
@@ -291,34 +315,71 @@ CODE
         ( command ${SHELL:-sh} -c ${TERMINAL} & )
     };
 
+    function __fzffs_console_quit ()
+    {
+        builtin :
+    };
+
+    function __fzffs_console_quit_session ()
+    {
+        browser[4]=;
+        FZF_FS_BUFFER="quit";
+        FZF_FS_BUFFER_OLD="quit";
+        builtin break
+    };
+
+    function __fzffs_console_reload ()
+    {
+        browser[4]=;
+        FZF_FS_BUFFER="reload";
+        FZF_FS_BUFFER_OLD="reload";
+        builtin break
+    };
+
+    __fzffs_console_console ()
+    {
+        console[3]=1
+        while [[ -n "${console[4]}" ]]
+        do
+            console[4]="$(__fzffs_util_select "console")"
+            console[1]="${FZF_FS_CONFIG_DIR}/console/${console[4]}"
+            [[ -f "${console[1]}" ]] && builtin eval . "${console[1]}"
+        done
+        console[3]=0
+    };
+
     f=;
     v=;
     s=;
     while IFS='|' builtin read -r f v s; do
         __fzffs_util_echoE "Creating ${FZF_FS_CONFIG_DIR}${f}" 1>&2;
         __fzffs_util_echoE "#!/usr/bin/env bash" > "${FZF_FS_CONFIG_DIR}${f}";
-        __fzffs_util_rename_function "$v" console_func;
+        #__fzffs_util_rename_function "$v" console_func;
         if [[ "$v" == *"open_with" ]]; then
-            builtin typeset -f console_func | command sed 's/builtin eval ${EDITOR} "$console_args"/builtin eval "$(__fzffs_util_echon builtin eval "$console_args")"/' >> "${FZF_FS_CONFIG_DIR}${f}";
+            __fzffs_util_rename_function __fzffs_console_edit "$v";
+            builtin typeset -f "$v" | command sed 's/\[\[ -n "$console_args" || "$console_interactive" -eq 0 \]\]/[[ -n "$console_args" ]]/;s/builtin eval ${EDITOR} "$console_args"/builtin eval "$(__fzffs_util_echon builtin eval "$console_args")"/' >> "${FZF_FS_CONFIG_DIR}${f}";
         else
             if [[ $v == *page ]]; then
-                builtin typeset -f console_func | command sed 's/EDITOR/PAGER/' >> "${FZF_FS_CONFIG_DIR}${f}";
+                __fzffs_util_rename_function __fzffs_console_edit "$v";
+                builtin typeset -f "$v" | command sed 's/EDITOR/PAGER/' >> "${FZF_FS_CONFIG_DIR}${f}";
             else
                 if [[ "$v" == *"cd" ]]; then
-                    builtin typeset -f console_func | command sed 's/builtin eval ${EDITOR} "$console_args"/browser_pwd="$(builtin eval __fzffs_util_echon "$console_args")"/' >> "${FZF_FS_CONFIG_DIR}${f}";
+                    __fzffs_util_rename_function __fzffs_console_edit "$v";
+                    builtin typeset -f "$v" | command sed 's/builtin eval ${EDITOR} "$console_args"/browser[4]="$(builtin eval __fzffs_util_echon "$console_args")"\n    builtin cd "${browser[4]}"/' >> "${FZF_FS_CONFIG_DIR}${f}";
                 else
                     if [[ "$v" == *"shell" ]]; then
-                        builtin typeset -f console_func | command sed -e 's/    builtin eval ${EDITOR} "$console_args"//' -e 's/^}//' -e '/^$/d' >> "${FZF_FS_CONFIG_DIR}${f}";
+                        __fzffs_util_rename_function __fzffs_console_edit "$v";
+                        builtin typeset -f "$v" | command sed -e 's/    builtin eval ${EDITOR} "$console_args"//' -e 's/^}//' -e '/^$/d' >> "${FZF_FS_CONFIG_DIR}${f}";
                         __fzffs_util_echoE "$code_shell" >> "${FZF_FS_CONFIG_DIR}${f}";
                         __fzffs_util_echo "}" >> "${FZF_FS_CONFIG_DIR}${f}";
                     else
-                        builtin typeset -f console_func >> "${FZF_FS_CONFIG_DIR}${f}";
+                        builtin typeset -f "$v" >> "${FZF_FS_CONFIG_DIR}${f}";
                     fi;
                 fi;
             fi;
         fi;
-        __fzffs_util_echoE "[${s:- }] ${f#*/*/}" >> "${FZF_FS_CONFIG_DIR}/env/console_shortcuts.default";
-        __fzffs_util_echoE "[${s:- }] ${f#*/*/}" >> "${FZF_FS_CONFIG_DIR}/env/console_shortcuts.user";
+        __fzffs_util_echo "${v} \"\$@\"" >> "${FZF_FS_CONFIG_DIR}${f}"
+        __fzffs_util_echo "builtin unset -f ${v}" >> "${FZF_FS_CONFIG_DIR}${f}"
     done  <<-COMMANDS
 /console/edit|__fzffs_console_edit|e
 /console/cd|__fzffs_console_cd|cd
@@ -326,11 +387,16 @@ CODE
 /console/page|__fzffs_console_page|p
 /console/shell|__fzffs_console_shell|s
 /console/terminal|__fzffs_console_terminal|t
+/console/quit|__fzffs_console_quit|qq
+/console/quit!|__fzffs_console_quit_session|q!
+/console/reload|__fzffs_console_reload|r
+/console/console|__fzffs_console_console|c
+/console/cd_up|__fzffs_console_cd_up|cdp
 COMMANDS
 
-    builtin unset -f __fzffs_console_edit __fzffs_console_shell __fzffs_console_terminal __fzffs_util_rename_function;
+    builtin unset -f __fzffs_console_edit __fzffs_console_quit __fzffs_console_quit_session __fzffs_console_reload __fzffs_console_shell __fzffs_console_terminal __fzffs_util_rename_function __fzffs_console_cd __fzffs_console_cd_up __fzffs_console_console __fzffs_console_open_with __fzffs_console_page;
 
-    __fzffs_util_echoE "${source}:Info: Initialized empty fzf-fs config directory in ${FZF_FS_CONFIG_DIR}" 1>&2;
+    __fzffs_util_echoE "${source}:Info: Initialized fzf-fs config directory: '${FZF_FS_CONFIG_DIR}'" 1>&2;
 
     builtin return 0
 }

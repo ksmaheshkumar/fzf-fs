@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+__fzffs_console_reload () 
+{ 
+    browser[4]=;
+    FZF_FS_BUFFER="reload";
+    FZF_FS_BUFFER_OLD="reload";
+    builtin break
+}
+__fzffs_console_reload "$@"
+builtin unset -f __fzffs_console_reload
