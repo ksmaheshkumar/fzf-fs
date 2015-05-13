@@ -1,0 +1,2 @@
+#!/usr/bin/env bash
+FZF_FS_NO_HSCROLL=0

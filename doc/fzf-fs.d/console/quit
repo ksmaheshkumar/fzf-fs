@@ -1,7 +1,0 @@
-#!/usr/bin/env bash
-__fzffs_console_quit () 
-{ 
-    builtin :
-}
-__fzffs_console_quit "$@"
-builtin unset -f __fzffs_console_quit

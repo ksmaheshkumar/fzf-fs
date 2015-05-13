@@ -1,0 +1,12 @@
+[submodule "modules/ls-wrapper"]
+	path = modules/ls-wrapper
+	url = https://github.com/D630/ls-wrapper
+[submodule "modules/spath.sh"]
+	path = modules/spath.sh
+	url = https://github.com/D630/spath.sh
+[submodule "modules/macro.sh"]
+	path = modules/macro.sh
+	url = https://github.com/D630/macro.sh
+[submodule "modules/fzf-wrapper"]
+	path = modules/fzf-wrapper
+	url = https://github.com/D630/fzf-wrapper

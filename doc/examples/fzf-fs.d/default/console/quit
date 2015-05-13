@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+__fzf_fs_console_quit () 
+{ 
+    builtin :
+}
+__fzf_fs_console_quit "$@";
+builtin unset -f __fzf_fs_console_quit

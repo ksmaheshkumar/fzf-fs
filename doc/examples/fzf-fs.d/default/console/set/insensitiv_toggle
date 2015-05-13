@@ -1,0 +1,2 @@
+#!/usr/bin/env bash
+FZF_FS_INSENSITIV="$((FZF_FS_INSENSITIV ? 0 : 1))"

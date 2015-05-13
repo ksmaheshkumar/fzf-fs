@@ -1,0 +1,2 @@
+#!/usr/bin/env bash
+FZF_FS_OPENER="$(command fzf --prompt="FZF_FS_OPENER " --print-query <<< "")"

@@ -1,0 +1,2 @@
+#!/usr/bin/env bash
+FZF_FS_SHOW_CURSOR="$((FZF_FS_SHOW_CURSOR ? 0 : 1))"

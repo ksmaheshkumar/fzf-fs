@@ -1,0 +1,203 @@
+fzf(1)             fzf - a command-line fuzzy finder            fzf(1)
+
+
+
+NAME
+       fzf - a command-line fuzzy finder
+
+
+SYNOPSIS
+       fzf [options]
+
+
+DESCRIPTION
+       fzf is a general-purpose command-line fuzzy finder.
+
+
+OPTIONS
+   Search mode
+       -x, --extended
+              Extended-search mode
+
+       -e, --extended-exact
+              Extended-search mode (exact match)
+
+       -i     Case-insensitive match (default: smart-case match)
+
+       +i     Case-sensitive match
+
+       -n, --nth=N[,..]
+              Comma-separated list of field index expressions for lim‐
+              iting search scope.   See  FIELD  INDEX  EXPRESSION  for
+              details.
+
+       --with-nth=N[,..]
+              Transform  the  item using the list of index expressions
+              for search
+
+       -d, --delimiter=STR
+              Field delimiter regex for --nth and --with-nth (default:
+              AWK-style)
+
+   Search result
+       +s, --no-sort
+              Do not sort the result
+
+       --tac  Reverse the order of the input
+              e.g. history | fzf --tac --no-sort
+
+       --tiebreak=CRI
+              Sort criterion to use when the scores are tied
+
+              length  Prefers item with shorter length
+              begin    Prefers  item  with matched substring closer to
+              the beginning
+              end     Prefers item with matched  substring  closer  to
+              the end
+              index    Prefers item that appeared earlier in the input
+              stream
+
+   Interface
+       -m, --multi
+              Enable multi-select with tab/shift-tab
+
+       --ansi Enable processing of ANSI color codes
+
+       --no-mouse
+              Disable mouse
+
+       --color=COL
+              Color scheme: [dark|light|16|bw]
+              (default: dark on 256-color terminal, otherwise 16)
+
+              dark    Color scheme for dark 256-color terminal
+              light   Color scheme for light 256-color terminal
+              16      Color scheme for 16-color terminal
+              bw      No colors
+
+       --black
+              Use black background
+
+       --reverse
+              Reverse orientation
+
+       --no-hscroll
+              Disable horizontal scroll
+
+       --inline-info
+              Display finder info inline with the query
+
+       --prompt=STR
+              Input prompt (default: '> ')
+
+   Scripting
+       -q, --query=STR
+              Start the finder with the given query
+
+       -1, --select-1
+              Automatically select the only match
+
+       -0, --exit-0
+              Exit immediately when there's no match
+
+       -f, --filter=STR
+              Filter mode. Do not start interactive finder. When  used
+              with --no-sort, fzf becomes a fuzzy-version of grep.
+
+       --print-query
+              Print query as the first line
+
+       --expect=KEY[,..]
+              Comma-separated  list  of  keys  (ctrl-[a-z], alt-[a-z],
+              f[1-4], or any single character) that  can  be  used  to
+              complete  fzf in addition to the default enter key. When
+              this option is set, fzf will print the name of  the  key
+              pressed  as the first line of its output (or as the sec‐
+              ond line if --print-query is also used). The  line  will
+              be empty if fzf is completed with the default enter key.
+              e.g. fzf --expect=ctrl-v,ctrl-t,alt-s,f1,f2,~,@
+
+       --toggle-sort=KEY
+              Key  to  toggle  sort (ctrl-[a-z], alt-[a-z], f[1-4], or
+              any single character)
+
+       --sync Synchronous search for multi-staged filtering. If speci‐
+              fied,  fzf  will  launch  ncurses  finder only after the
+              input stream is complete.
+              e.g. fzf --multi | fzf --sync
+
+
+ENVIRONMENT
+       FZF_DEFAULT_COMMAND
+              Default command to use when input is tty
+
+       FZF_DEFAULT_OPTS
+              Default options. e.g. --extended --ansi
+
+
+EXIT STATUS
+       0      Normal exit
+       1      Interrupted with CTRL-C or ESC
+
+
+FIELD INDEX EXPRESSION
+       A field index expression can be a non-zero integer or  a  range
+       expression ([BEGIN]..[END]). --nth and --with-nth take a comma-
+       separated list of field index expressions.
+
+
+   Examples
+       1      The 1st field
+       2      The 2nd field
+       -1     The last field
+       -2     The 2nd to last field
+       3..5   From the 3rd field to the 5th field
+       2..    From the 2nd field to the last field
+       ..-3   From the 1st field to the 3rd to the last field
+       ..     All the fields
+
+
+EXTENDED SEARCH MODE
+       With -x or --extended option,  fzf  will  start  in  "extended-
+       search  mode".  In this mode, you can specify multiple patterns
+       delimited by spaces, such as: 'wild ^music .mp3$ sbtrkt !rmx
+
+
+   Exact-match (quoted)
+       A term that is prefixed by  a  single-quote  character  (')  is
+       interpreted as an "exact-match" (or "non-fuzzy") term. fzf will
+       search for the exact occurrences of the string.
+
+
+   Anchored-match
+       A term can be prefixed by ^, or suffixed  by  $  to  become  an
+       anchored-match  term.   Then fzf will search for the items that
+       start with or end with the given string. An anchored-match term
+       is also an exact-match term.
+
+
+   Negation
+       If  a  term  is  prefixed by !, fzf will exclude the items that
+       satisfy the term from the result.
+
+
+   Extended-exact mode
+       If you don't need fuzzy matching at all  and  do  not  wish  to
+       "quote"  (prefixing  with  ')  every word, start fzf with -e or
+       --extended-exact option (instead of -x or --extended).
+
+
+AUTHOR
+       Junegunn Choi (junegunn.c@gmail.com)
+
+
+SEE ALSO
+       https://github.com/junegunn/fzf
+
+
+LICENSE
+       MIT
+
+
+
+fzf 0.9.11                    April 2015                        fzf(1)

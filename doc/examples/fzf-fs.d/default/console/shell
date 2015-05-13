@@ -1,0 +1,44 @@
+#!/usr/bin/env bash
+__fzf_fs_console_shell () 
+{ 
+    builtin unset -v console_prompt;
+    builtin typeset console_prompt="${console[0]##*/}";
+    [[ -n "${console[1]}" || "${console[2]}" -eq 0 ]] || { 
+        if [[ -n "$KSH_VERSION" ]]; then
+            console[1]="$(command fzf --prompt=":${console_prompt} " --print-query <<< "")";
+        else
+            command tput sc;
+            command tput cup 99999 0;
+            if [[ -n "$ZSH_VERSION" ]]; then
+                builtin vared -p ":${console_prompt} " tmp;
+            else
+                builtin read -re -p ":${console_prompt} " tmp;
+            fi;
+            console[1]="$tmp";
+            command tput rc;
+            command tput ed;
+        fi
+    };
+    builtin set -- ${console[1]};
+    (($# > 0)) && { 
+        builtin . "${FZF_FS_CONFIG_DIR}/env/flags" "$1" && builtin shift 1;
+        MACRO_FILE="${FZF_FS_CONFIG_DIR}/env/macros" __macro_do "console[1]" "$*"
+    };
+    [[ "${console[5]}" -eq 1 ]] || builtin unset -v "console[5]";
+    if [[ "${console[6]}" -eq 1 ]]; then
+        if [[ "${console[4]}" -eq 1 ]]; then
+            ( builtin eval ${TERMINAL} -e "${console[1]}\;${console[5]:+${SHELL:-sh}}" \& );
+        else
+            builtin eval ${TERMINAL} -e "${console[1]}\;${console[5]:+${SHELL:-sh}}";
+        fi;
+    else
+        if [[ "${console[4]}" -eq 1 ]]; then
+            ( builtin eval ${SHELL:-sh} "${console[1]:+-c ${console[1]}}" \& );
+        else
+            builtin eval ${SHELL:-sh} "${console[1]:+-c ${console[1]}}" ${console[5]:+\; command printf '%s\\n' \'Press ENTER to continue\' ; builtin read};
+        fi;
+    fi;
+    console[1]=
+}
+__fzf_fs_console_shell "$@";
+builtin unset -f __fzf_fs_console_shell

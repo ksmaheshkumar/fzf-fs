@@ -1,7 +1,0 @@
-#!/usr/bin/env bash
-__fzffs_console_terminal () 
-{ 
-    ( command ${SHELL:-sh} -c ${TERMINAL} & )
-}
-__fzffs_console_terminal "$@"
-builtin unset -f __fzffs_console_terminal

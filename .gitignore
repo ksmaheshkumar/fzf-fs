@@ -1,4 +1,6 @@
-CHANGES
-doc/fzf-fs.d/browser/*
-doc/fzf-fs.d/marks/*
-doc/fzf-fs.d/visual/*
+NOTES
+LOG
+TEMPLATE
+doc/examples/fzf-fs.d/browser/*
+doc/examples/fzf-fs.d/marks/*
+doc/examples/fzf-fs.d/visual/*

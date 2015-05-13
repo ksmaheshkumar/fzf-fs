@@ -1,0 +1,2 @@
+#!/usr/bin/env bash
+FZF_FS_OPENER="$FZF_FS_OPENER_DEFAULT"

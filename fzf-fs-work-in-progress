@@ -1,0 +1,300 @@
+#!/usr/bin/env bash
+
+# fzf-fs
+# Copyright (C) 2015 D630, The MIT License (MIT)
+# <https://github.com/D630/fzf-fs>
+
+# -- DEBUGGING.
+
+#printf '%s (%s)\n' "$BASH_VERSION" "${BASH_VERSINFO[5]}" && exit 0
+#set -o errexit
+#set -o errtrace
+#set -o noexec
+#set -o nounset
+#set -o pipefail
+#set -o verbose
+#set -o xtrace
+#trap '(read -p "[$BASH_SOURCE:$LINENO] $BASH_COMMAND?")' DEBUG
+#exec 2>> ~/fzf-fs.log
+#typeset vars_base=$(set -o posix ; set)
+#fgrep -v -e "$vars_base" < <(set -o posix ; set) |
+#egrep -v -e "^BASH_REMATCH=" \
+#         -e "^OPTIND=" \
+#         -e "^REPLY=" \
+#         -e "^BASH_LINENO=" \
+#         -e "^BASH_SOURCE=" \
+#         -e "^FUNCNAME=" |
+#less
+
+# -- ALIASES.
+
+{ builtin shopt -s expand_aliases ; } 2> /dev/null
+
+builtin alias array='builtin typeset -a'
+builtin alias const='builtin typeset -r'
+builtin alias iarray='builtin typeset -ai'
+builtin alias int='builtin typeset -i'
+builtin alias itable='builtin typeset -Ai'
+builtin alias ref='builtin typeset -n'
+builtin alias string='builtin typeset +i'
+builtin alias table='builtin typeset -A'
+
+# -- FUNCTIONS.
+
+__fzffs_browser ()
+{
+    function __fzffs_browser_enter ()
+    {
+        if [[ -d "${browser[5]}" ]]; then
+            browser[3]="${browser[5]}";
+            builtin cd "${browser[3]}";
+        else
+            FzfFsMain__san c;
+            builtin typeset -a c;
+            c="open_with ${FZF_FS_OPENER} ${browser[5]}";
+            __fzffs_console;
+        fi
+    };
+
+    function __fzffs_browser_parse_pwd ()
+    {
+        __ls_get_inode "browser[4]" ".";
+        browser[4]="${browser[4]%% *}";
+        __ls_get_inode "tmp" "..";
+        browser[1]="${tmp#[0-9]* }";
+        browser[2]="${tmp%% *}";
+        browser[9]="$(md5sum <<-SUM
+li${LC_COLLATE}${FZF_FS_LS_OPTS#-}${FZF_FS_LS_SYMLINK//-/}${FZF_FS_LS_REVERSE}${FZF_FS_LS_HIDDEN}${FZF_FS_LS_CLICOLOR}${FZF_FS_SORT}${browser[4]}
+SUM
+)";
+        browser[9]="${browser[9]%% *}"
+    };
+
+    function __fzffs_browser_parse_selection ()
+    {
+        browser[8]="${browser[7]%% *}";
+        [[ "${browser[8]}" == "${browser[4]}" ]] && builtin continue;
+        [[ "${browser[8]}" == "${browser[2]}" ]] && {
+            browser[3]="${browser[3]%/*}";
+            browser[3]="${browser[3]:-${browser[0]}}";
+            builtin return 1
+        };
+        browser[5]="${browser[3]}/$(__ls_find_inode : "${browser[3]}" "${browser[8]}")";
+        browser[5]="${browser[5]//\/\//\/}";
+        __ls_get_inode "browser[6]" "${browser[5]}" || builtin continue;
+        browser[6]="${browser[6]%% *}"
+    };
+
+    FzfFsMain__san key tmp;
+    builtin typeset +i key;
+    builtin typeset +i tmp;
+
+    browser[3]="$1";
+
+    [[ "$PWD" == "${browser[3]}" ]] || builtin cd "${browser[3]}";
+
+    __fzffs_cursor 0;
+
+    while [[ -n "${browser[3]}" ]]; do
+        __fzffs_browser_parse_pwd;
+        browser[7]="$(FzfFsCore FzfFsCore__select "browser" "${browser[3]}")";
+        if [[ "${browser[7]}" == $'\n'* ]]; then
+            browser[7]="${browser[7]/$'\n'/}";
+            __fzffs_browser_parse_selection && __fzffs_browser_enter;
+        else
+            key="${browser[7]/$'\n'*/}";
+            browser[7]="${browser[7]/*$'\n'/}";
+            if [[ -n "${browser[7]}" ]]; then
+                __fzffs_cursor 0
+                __fzffs_browser_parse_selection;
+                if [[ "$FZF_FS_MODE" == "normal" ]]; then
+                    builtin . "${FZF_FS_CONFIG_DIR}/env/keybindings_normal";
+                else
+                    builtin . "${FZF_FS_CONFIG_DIR}/env/keybindings_search";
+                fi;
+                __fzffs_console;
+            else
+                FZF_FS_MODE=normal;
+                __fzffs_cursor 0;
+            fi;
+        fi;
+    done
+}
+
+__fzffs_clean_confdir ()
+{
+    command rm -r "${FZF_FS_CONFIG_DIR}/browser"
+}
+
+__fzffs_clean_env ()
+{
+    builtin typeset -x \
+        FZF_DEFAULT_COMMAND="$FZF_DEFAULT_COMMAND_OLD" \
+        FZF_DEFAULT_OPTS="$FZF_DEFAULT_OPTS_OLD" \
+        LC_COLLATE="$LC_COLLATE_OLD";
+
+    builtin unset -v \
+        FZF_DEFAULT_COMMAND_OLD \
+        FZF_DEFAULT_OPTS_OLD \
+        FZF_FS_BASH_OPTS_OLD \
+        FZF_FS_GLOBINORE_OLD \
+        FZF_FS_ZSH_OPTS_OLD \
+        LC_COLLATE_OLD;
+}
+
+__fzffs_clean_funcs ()
+{
+    builtin unset -f \
+        __fzf_wrapper \
+        __fzffs_browser \
+        __fzffs_browser_enter \
+        __fzffs_browser_find \
+        __fzffs_browser_parse_pwd \
+        __fzffs_browser_parse_selection \
+        __fzffs_buffer \
+        __fzffs_clean_confdir \
+        __fzffs_clean_env \
+        __fzffs_clean_funcs \
+        __fzffs_clean_sh \
+        __fzffs_command_ls \
+        __fzffs_command_ls_color \
+        __fzffs_console \
+        __fzffs_console_quit_session \
+        __fzffs_fzf \
+        __fzffs_help \
+        __fzffs_init \
+        __fzffs_keybindings \
+        __fzffs_list \
+        __fzffs_main \
+        __fzffs_on_quit \
+        __fzffs_on_reload \
+        __fzffs_prepare_bash \
+        __fzffs_prepare_mksh \
+        __fzffs_prepare_zsh \
+        __fzffs_prompt \
+        __fzffs_quit_sh \
+        __fzffs_select \
+        __fzffs_util_echo \
+        __fzffs_util_echoE \
+        __fzffs_util_echon \
+        __fzffs_util_fifo_pull \
+        __fzffs_util_ls_do \
+        __fzffs_util_parse_flags \
+        __fzffs_util_parse_macros \
+        __fzffs_util_print_shortcuts \
+        __fzffs_util_printfq \
+        __fzffs_version \
+        __fzffs_visual \
+        __ls \
+        __ls_color \
+        __ls_do \
+        __ls_file_print \
+        __ls_find_inode \
+        __ls_get_checksum \
+        __ls_get_inode \
+        __ls_mkdir \
+        __ls_perform \
+        __ls_remove_color \
+        __ls_set_aliases \
+        __ls_upvar \
+        __macro_create \
+        __macro_do \
+        __spath_do \
+        __spath_get_cols;
+}
+
+__fzffs_console ()
+{
+    __fzffs_cursor 1;
+
+    FzfFsMain__san cmd console;
+
+    builtin typeset -a console;
+    builtin typeset +i cmd;
+
+    console[2]=0;
+    console[4]=0;
+    console[5]=0;
+    console[6]=0;
+
+    for cmd in "${c[@]}";
+    do
+        console[0]="${FZF_FS_CONFIG_DIR}/console/${cmd%% *}";
+        if [[ "$cmd" == "${cmd/ /}" ]]; then
+            console[1]=;
+        else
+            console[1]="${cmd#* }";
+        fi;
+        if [[ -f "${console[0]}" ]]; then
+            console[3]="$cmd";
+            builtin eval . "${console[0]}" "${console[1]}" ;
+        else
+            builtin break;
+        fi;
+    done;
+
+    __fzffs_cursor 0;
+}
+
+__fzffs_cursor ()
+{
+    [[ "$FZF_FS_SHOW_CURSOR" -eq 0 ]] && {
+        case "$1" in
+            0)
+                command printf "$cursor_off"
+            ;;
+            1)
+                command printf "$cursor_on"
+            ;;
+        esac
+    }
+}
+
+__fzffs_dump_env ()
+{
+    command printf '%s\n' "#!/usr/bin/env bash";
+    builtin typeset -p \
+        EDITOR \
+        FZF_DEFAULT_COMMAND \
+        FZF_DEFAULT_COMMAND_OLD \
+        FZF_DEFAULT_OPTS \
+        FZF_FS_BG_BLACK \
+        FZF_FS_COLORSCHEME \
+        FZF_FS_DEFAULT_OPTS \
+        FZF_FS_DEFAULT_OPTS_OLD \
+        FZF_FS_LS_CLICOLOR \
+        FZF_FS_LS_COMMAND \
+        FZF_FS_LS_COMMAND_COLOR \
+        FZF_FS_LS_HIDDEN \
+        FZF_FS_INLINE_INFO \
+        FZF_FS_LS_OPTS \
+        FZF_FS_LS_REVERSE \
+        FZF_FS_LS_SYMLINK \
+        FZF_FS_MODE \
+        FZF_FS_NO_HSCROLL \
+        FZF_FS_NO_MOUSE \
+        FZF_FS_OPENER \
+        FZF_FS_OPENER_DEFAULT \
+        FZF_FS_SORT \
+        FZF_FS_STATUSBAR_TOP \
+        LC_COLLATE \
+        LC_COLLATE_OLD \
+        PAGER \
+        TERMINAL
+} > "${FZF_FS_CONFIG_DIR}/browser/env.cache"
+
+__fzffs_on_quit ()
+{
+    __fzffs_clean_sh;
+    __fzffs_clean_confdir;
+    __fzffs_clean_funcs;
+    __fzffs_clean_env;
+} 1> /dev/null 2>&1
+
+__fzffs_on_reload ()
+{
+    __fzffs_clean_confdir;
+    builtin unset -v \
+        FZF_FS_BUFFER \
+        FZF_FS_BUFFER_OLD
+} 1> /dev/null 2>&1
