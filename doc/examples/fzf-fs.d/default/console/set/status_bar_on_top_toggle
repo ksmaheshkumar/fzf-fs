@@ -1,2 +1,0 @@
-#!/usr/bin/env bash
-FZF_FS_STATUSBAR_TOP="$((FZF_FS_STATUSBAR_TOP ? 0 : 1))"

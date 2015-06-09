@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+FZF_FS_LS_CLICOLOR=0;
+FzfFsCore__update_env

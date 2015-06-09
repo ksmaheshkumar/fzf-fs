@@ -1,2 +1,0 @@
-#!/usr/bin/env bash
-LC_COLLATE="$LANG"

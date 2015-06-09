@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+__fzf_fs_console_quit_session () 
+{ 
+    cwd[3]=;
+    FZF_FS_BUFFER="quit";
+    FZF_FS_BUFFER_OLD="quit";
+    builtin break
+}
+__fzf_fs_console_quit_session "$@";
+builtin unset -f __fzf_fs_console_quit_session

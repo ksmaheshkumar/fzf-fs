@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+LC_COLLATE="C";
+FzfFsCore__update_env

@@ -1,2 +1,0 @@
-#!/usr/bin/env bash
-FZF_FS_EXTENDED="$((FZF_FS_EXTENDED ? 0 : 1))"

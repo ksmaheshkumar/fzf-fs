@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+//[%][d]/${cwd[3]}
+//[%][s]/${file}

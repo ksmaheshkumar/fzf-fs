@@ -1,2 +1,0 @@
-#!/usr/bin/env bash
-FZF_FS_INLINE_INFO="$((FZF_FS_INLINE_INFO ? 0 : 1))"

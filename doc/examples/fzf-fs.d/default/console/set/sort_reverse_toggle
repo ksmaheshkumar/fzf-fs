@@ -1,2 +1,0 @@
-#!/usr/bin/env bash
-FZF_FS_LS_REVERSE="$((FZF_FS_LS_REVERSE ? 0 : 1))"

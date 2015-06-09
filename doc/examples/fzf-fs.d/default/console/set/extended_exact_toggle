@@ -1,2 +1,0 @@
-#!/usr/bin/env bash
-FZF_FS_EXTENDED_EXACT="$((FZF_FS_EXTENDED_EXACT ? 0 : 1))"

@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+FZF_FS_BG_BLACK=1;
+FzfFsCore__update_env
