@@ -5,42 +5,6 @@ FzfFsSession ()
     { 
         clients_session[${#clients[@]} - 1]="$FZF_FS_SESSION"
     };
-    function FzfFsSession__create_buffer () 
-    { 
-        builtin unset -v i index;
-        builtin typeset i index;
-        index="$((${#buffers[@]} + 1))";
-        buffers+=("${index}-${1:-${index}}");
-        FZF_FS_SESSION="$(<"${FZF_FS_CONFIG_DIR}/daemon/clients/${FZF_FS_CLIENT}/session")";
-        command mkdir -p -m 755 "${FZF_FS_CONFIG_DIR}/sessions/${FZF_FS_SESSION}/var/buffers/${index}";
-        command cp "${FZF_FS_CONFIG_DIR}/sessions/${FZF_FS_SESSION}/var/env.session" "${FZF_FS_CONFIG_DIR}/sessions/${FZF_FS_SESSION}/var/buffers/${index}/env.buffer";
-        command cp "${FZF_FS_CONFIG_DIR}/sessions/${FZF_FS_SESSION}/var/cwd.session" "${FZF_FS_CONFIG_DIR}/sessions/${FZF_FS_SESSION}/var/buffers/${index}/cwd.buffer";
-        FzfFsSession__update_info;
-        command printf '%s\n' "$index" > "${FZF_FS_CONFIG_DIR}/daemon/clients/${FZF_FS_CLIENT}/buffer";
-        builtin return "$index"
-    };
-    function FzfFsSession__create_daemon () 
-    { 
-        if { 
-            builtin . "${FZF_FS_CONFIG_DIR}/daemon/info" && command ps -p "${daemon[0]}"
-        } > /dev/null 2>&1; then
-            { 
-                command printf '%s\n' "${source}: Error 79: Daemon has already been started with pid: '${daemon[0]}'" 1>&2;
-                builtin return 79
-            };
-        else
-            command mkdir -p -m 755 "${FZF_FS_CONFIG_DIR}/daemon/clients";
-            command chmod +x "${FZF_FS_CONFIG_DIR}/default/lib/fzf-fs-fifo.sh";
-            FzfFsSession__create_fifo;
-            command sleep 0.5 && command printf '%s\n' "Done" 1>&2;
-        fi
-    };
-    function FzfFsSession__create_fifo () 
-    { 
-        command rm "${FZF_FS_CONFIG_DIR}/daemon/"{request,response}.fifo > /dev/null 2>&1;
-        command mkfifo "${FZF_FS_CONFIG_DIR}/daemon/"{request,response}.fifo;
-        ( exec "${FZF_FS_CONFIG_DIR}/default/lib/fzf-fs-fifo.sh" "$FZF_FS_CONFIG_DIR" & )
-    };
     function FzfFsSession__create_session () 
     { 
         builtin unset -v i index n;
@@ -69,28 +33,6 @@ FzfFsSession ()
         do
             command printf '%d %d %s %s %s\n' "$i" "${sessions_ids[$i]}" "${sessions[${sessions_ids[$i]}]}" "${sessions_status[${sessions_ids[$i]}]}" "${cwd[3]:--}";
         done 2> /dev/null
-    };
-    function FzfFsSession__kill_daemon () 
-    { 
-        FzfFsSession__san daemon;
-        builtin typeset -a daemon;
-        if builtin . "${FZF_FS_CONFIG_DIR}/daemon/info"; then
-            if command ps -p "${daemon[0]}" > /dev/null; then
-                command printf '%s' "${source}: Info: Killing daemon with pid: '${daemon[0]}' ... " 1>&2;
-                command kill "${daemon[0]}" && command printf '%s\n' "Done" 1>&2;
-                command rm "${FZF_FS_CONFIG_DIR}/daemon/"{info,{request,response}.fifo};
-            else
-                { 
-                    command printf '%s\n' "${source}: Error 80: Could not kill stored pid: '${daemon[0]}'" 1>&2;
-                    builtin return 80
-                };
-            fi;
-        else
-            { 
-                command printf '%s\n' "${source}: Error 81: Could not find a started daemon" 1>&2;
-                builtin return 81
-            };
-        fi
     };
     function FzfFsSession__main () 
     { 
@@ -184,32 +126,6 @@ FzfFsSession ()
         FzfFsSession__attend_session;
         FzfFsSession__update_info_client
     };
-    function FzfFsSession__register_stored_sessions () 
-    { 
-        builtin unset -v i name;
-        builtin typeset i name;
-        [[ -d "${FZF_FS_CONFIG_DIR}/user/sessions" ]] && { 
-            for i in "${FZF_FS_CONFIG_DIR}/user/sessions"/*;
-            do
-                name="$(<"${i}/var/info.session")";
-                i="${i##*/}";
-                [[ -n "$i" ]] && sessions[${i}]="$name";
-            done
-        };
-        FzfFsSession__update_info
-    };
-    function FzfFsSession__request () 
-    { 
-        builtin unset -v ret;
-        builtin typeset -i ret;
-        command rm "${FZF_FS_CONFIG_DIR}/daemon/clients/${FZF_FS_CLIENT}/response" > /dev/null 2>&1;
-        IFS=" " command printf '%s\n' "${FZF_FS_CLIENT:+${FZF_FS_CLIENT} }${*}" 1>&8;
-        until [[ -f "${FZF_FS_CONFIG_DIR}/daemon/clients/${FZF_FS_CLIENT}/response" ]]; do
-            builtin :;
-        done;
-        ret="$(<"${FZF_FS_CONFIG_DIR}/daemon/clients/${FZF_FS_CLIENT}/response")";
-        builtin return "$ret"
-    };
     function FzfFsSession__rename_session () 
     { 
         builtin unset -v id index n;
@@ -226,12 +142,6 @@ FzfFsSession ()
         command mv "${FZF_FS_CONFIG_DIR}/user/sessions/${index}" "${FZF_FS_CONFIG_DIR}/cache/sessions/";
         FzfFsSession__update_info_session;
         builtin return "$id"
-    };
-    function FzfFsSession__return_status () 
-    { 
-        builtin unset -v i;
-        builtin typeset -i i="$1";
-        command printf '%s\n' "$i" > "${FZF_FS_CONFIG_DIR}/daemon/clients/${FZF_FS_CLIENT}/response"
     };
     function FzfFsSession__store_session () 
     { 
@@ -278,35 +188,10 @@ FzfFsSession ()
             ((n++));
         done
     } > "${FZF_FS_CONFIG_DIR}/cache/sessions/info.sessions";
-    function FzfFsSession__update_cwd () 
-    { 
-        FZF_FS_SESSION="$(<"${FZF_FS_CONFIG_DIR}/daemon/clients/${FZF_FS_CLIENT}/session")";
-        FZF_FS_BUFFER="$(<"${FZF_FS_CONFIG_DIR}/daemon/clients/${FZF_FS_CLIENT}/buffer")";
-        command cp -f "${FZF_FS_CONFIG_DIR}/sessions/${FZF_FS_SESSION}/var/buffers/${FZF_FS_BUFFER}/cwd.buffer" "${FZF_FS_CONFIG_DIR}/sessions/${FZF_FS_SESSION}/var/cwd.session";
-        builtin return 0
-    };
-    function FzfFsSession__update_env () 
-    { 
-        FZF_FS_SESSION="$(<"${FZF_FS_CONFIG_DIR}/daemon/clients/${FZF_FS_CLIENT}/session")";
-        FZF_FS_BUFFER="$(<"${FZF_FS_CONFIG_DIR}/daemon/clients/${FZF_FS_CLIENT}/buffer")";
-        command cp -f "${FZF_FS_CONFIG_DIR}/sessions/${FZF_FS_SESSION}/var/buffers/${FZF_FS_BUFFER}/env.buffer" "${FZF_FS_CONFIG_DIR}/sessions/${FZF_FS_SESSION}/var/env.session";
-        builtin return 0
-    };
-    function FzfFsSession__san () 
-    { 
-        case "$1" in 
-            -[fn])
-                IFS=" " builtin unset ${*}
-            ;;
-            *)
-                IFS=" " builtin unset -v ${*}
-            ;;
-        esac
-    };
-    FzfFsSession__san ret;
+    builtin unset -v ret;
     builtin typeset -i ret;
     FzfFsSession__main "$@";
     ret="$?";
-    FzfFsSession__san -f FzfFsSession__create_daemon FzfFsSession__create_fifo FzfFsSession__create_session FzfFsSession__kill_daemon FzfFsSession__main FzfFsSession__san;
+    builtin unset -f FzfFsSession__main;
     builtin return "$ret"
 }

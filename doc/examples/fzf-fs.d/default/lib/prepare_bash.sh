@@ -45,21 +45,10 @@ FzfFsPrepareBash ()
     { 
         IFS=" " builtin printf "%q\n" "$*"
     };
-    function FzfFsPrepareBash__san () 
-    { 
-        case "$1" in 
-            -[fn])
-                IFS=" " builtin unset ${*}
-            ;;
-            *)
-                IFS=" " builtin unset -v ${*}
-            ;;
-        esac
-    };
-    FzfFsPrepareBash__san ret;
+    builtin unset -v ret;
     builtin typeset -i ret;
     FzfFsPrepareBash__main "$@";
     ret="$?";
-    FzfFsPrepareBash_san -f FzfFsPrepareBash__main FzfFsPrepareBash__san;
+    builtin unset -f FzfFsPrepareBash__main;
     builtin return "$ret"
 }

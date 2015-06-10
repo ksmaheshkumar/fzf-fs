@@ -28,220 +28,200 @@
 
 # -- ALIASES.
 
-{ builtin shopt -s expand_aliases ; } 2> /dev/null
+#{ builtin shopt -s expand_aliases ; } 2> /dev/null
 
-builtin alias array='builtin typeset -a'
-builtin alias const='builtin typeset -r'
-builtin alias iarray='builtin typeset -ai'
-builtin alias int='builtin typeset -i'
-builtin alias itable='builtin typeset -Ai'
-builtin alias ref='builtin typeset -n'
-builtin alias string='builtin typeset +i'
-builtin alias table='builtin typeset -A'
-
-# -- MODULES.
+#builtin alias array='builtin typeset -a'
+#builtin alias const='builtin typeset -r'
+#builtin alias iarray='builtin typeset -ai'
+#builtin alias int='builtin typeset -i'
+#builtin alias itable='builtin typeset -Ai'
+#builtin alias ref='builtin typeset -n'
+#builtin alias string='builtin typeset +i'
+#builtin alias table='builtin typeset -A'
 
 FzfFsMain ()
 {
-    # -- FUNCTIONS.
+        # -- FUNCTIONS.
 
-    function FzfFsMain__connect_daemon ()
-    {
-        if builtin . "${FZF_FS_CONFIG_DIR}/daemon/info"
-        then
-            exec 8<>"${FZF_FS_CONFIG_DIR}/daemon/request.fifo";
-            exec 9<>"${FZF_FS_CONFIG_DIR}/daemon/response.fifo";
-            builtin . "${FZF_FS_CONFIG_DIR}/default/lib/daemon.sh";
-        else
-            { command printf '%s\n' "${source}:Error:83: Could not connect to the daemon; missing file: '${FZF_FS_CONFIG_DIR}/daemon/info'" 1>&2 ; builtin return 83 ; }
-        fi;
-    };
-
-    function FzfFsMain__get_args ()
-    {
-        function __parse_opt ()
+        function FzfFsMain__get_args ()
         {
-            if [[ "$OPTARG" == \-?* ]]; then
-                builtin printf '%s\n' "Option '-${opt}' requires an argument" 1>&2;
-                builtin return 1
-            else
-                builtin  eval "$1";
-            fi
+                function __parse_opt ()
+                {
+                        if [[ "$OPTARG" == \-?* ]]
+                        then
+                                builtin printf '%s\n' "Option '-${opt}' requires an argument" 1>&2;
+                                builtin return 1
+                        else
+                                builtin  eval "$1";
+                        fi
+                };
+
+                unset -v OPTIND opt s;
+                typeset OPTIND=1 opt s;
+                while getopts ":hils:v" opt
+                do
+                        case "$opt" in
+                        h)
+                                builtin . "${FZF_FS_CONFIG_DIR}/default/lib/help.sh" &&
+                                        FzfFsHelp;
+                                builtin return "$?"
+                        ;;
+                        i)
+                                builtin . fzf-fs-init;
+                                builtin return "$?"
+                        ;;
+                        l)
+                                builtin . "${FZF_FS_CONFIG_DIR}/default/lib/session.sh" &&
+                                        FzfFsSession FzfFsSession__dump_sessions;
+                                builtin return "$?"
+                        ;;
+                        s)
+                                __parse_opt "s=${OPTARG}"
+                        ;;
+                        v)
+                                builtin . "${FZF_FS_CONFIG_DIR}/default/lib/version.sh" &&
+                                        FzfFsVersion;
+                                builtin return "$?"
+                        ;;
+                        :)
+                                builtin printf '%s\n' "Option '-${OPTARG}' requires an argument" 1>&2;
+                                builtin return 1
+                        ;;
+                        \?)
+                                builtin printf '%s\n' "Unknown flag: '-${OPTARG}'" 1>&2;
+                                builtin return 1
+                        ;;
+                        esac
+                done
+
+                builtin unset -f __parse_opt;
+                builtin shift "$((--OPTIND))";
+                FZF_FS_CWD="$1";
+                FZF_FS_SESSION="${FZF_FS_SESSION:-${s}}";
+                FZF_FS_CLIENT="${RANDOM}${RANDOM}";
+                FZF_FS_BUFFER="${FZF_FS_BUFFER:-navigator}";
+                builtin . "${FZF_FS_CONFIG_DIR}/default/lib/session.sh";
+                FzfFsMain__run "$1";
+                builtin return "$?"
         };
 
-        unset -v OPTIND opt s;
-        typeset OPTIND=1 opt s;
-        while getopts ":hils:v" opt; do
-            case "$opt" in
-                h)
-                    builtin . "${FZF_FS_CONFIG_DIR}/default/lib/help.sh" && FzfFsHelp;
-                    builtin return "$?"
-                ;;
-                i)
-                    builtin . fzf-fs-init && FzfFsInit;
-                    builtin return "$?"
-                ;;
-                l)
-                    builtin . "${FZF_FS_CONFIG_DIR}/default/lib/session.sh" &&
-                    FzfFsSession FzfFsSession__dump_sessions;
-                    builtin return "$?"
-                ;;
-                s)
-                    __parse_opt "s=${OPTARG}"
-                ;;
-                v)
-                    builtin . "${FZF_FS_CONFIG_DIR}/default/lib/version.sh" && FzfFsVersion;
-                    builtin return "$?"
-                ;;
-                :)
-                    builtin printf '%s\n' "Option '-${OPTARG}' requires an argument" 1>&2;
-                    builtin return 1
-                ;;
-                \?)
-                    builtin printf '%s\n' "Unknown flag: '-${OPTARG}'" 1>&2;
-                    builtin return 1
-                ;;
-            esac
-        done
-        builtin shift "$((--OPTIND))";
-        FZF_FS_CWD="$1";
-        FZF_FS_SESSION="${FZF_FS_SESSION:-${s}}";
-        FZF_FS_CLIENT="${RANDOM}${RANDOM}";
-        FZF_FS_BUFFER="${FZF_FS_BUFFER:-navigator}";
-        builtin . "${FZF_FS_CONFIG_DIR}/default/lib/session.sh";
-        FzfFsMain__run "$1";
-        builtin return "$?"
-    };
+        function FzfFsMain__get_ls ()
+        {
+                builtin eval "__ls ${FZF_FS_LS_COMMAND}";
+                builtin eval "__ls_color ${FZF_FS_LS_COMMAND_COLOR}"
+        };
 
-    function FzfFsMain__get_ls ()
-    {
-        builtin eval "__ls ${FZF_FS_LS_COMMAND}";
-        builtin eval "__ls_color ${FZF_FS_LS_COMMAND_COLOR}"
-    };
+        function FzfFsMain__main ()
+        {
+                builtin unset -v \
+                        ret \
+                        source;
 
-    function FzfFsMain__main ()
-    {
-        builtin unset -v \
-            ret \
-            source;
+                builtin typeset \
+                        FZF_FS_CONFIG_DIR="${FZF_FS_CONFIG_DIR:-${XDG_CONFIG_HOME:-${HOME}/.config}/fzf-fs.d}" \
+                        source;
 
-        builtin typeset \
-            FZF_FS_CONFIG_DIR="${FZF_FS_CONFIG_DIR:-${XDG_CONFIG_HOME:-${HOME}/.config}/fzf-fs.d}" \
-            source;
+                builtin typeset -i ret;
 
+                FzfFsMain__prepare_sh 2>/dev/null;
+                FzfFsMain__get_args "$@";
+                ret="$?"
+
+                #~ if ((ret == 111)); then
+                        #~ builtin . "${FZF_FS_CONFIG_DIR}/browser/env.cache";
+                        #~ __fzffs_on_reload;
+                        #~ __fzffs_main "$PWD";
+                #~ else
+                        #~ __fzffs_cursor 1;
+                        #~ __fzffs_on_quit;
+                        #~ #exec 9<&-;
+                        #~ #exec 9>&-;
+                        #~ builtin return "$ret";
+                #~ fi
+        };
+
+        function FzfFsMain__prepare_sh ()
+        {
+                if [[ -n "$BASH_VERSION" ]]
+                then
+                        source="${BASH_SOURCE[0]}";
+                        builtin . "${FZF_FS_CONFIG_DIR}/default/lib/prepare_bash.sh" &&
+                                FzfFsPrepareBash;
+                else
+                        if [[ -n "$ZSH_VERSION" ]]
+                        then
+                                source="${(%):-%x}";
+                                builtin . "${FZF_FS_CONFIG_DIR}/default/lib/prepare_zsh.sh" &&
+                                        FzfFsPrepareZsh;
+                        else
+                                source="$0";
+                                [[ -n "$KSH_VERSION" ]] &&
+                                        builtin . "${FZF_FS_CONFIG_DIR}/default/lib/prepare_mksh.sh" &&
+                                        FzfFsPrepareMksh;
+                        fi;
+                fi;
+        };
+
+        function FzfFsMain__run ()
+        {
+                if FzfFsMain__source_deps
+                then
+                        FzfFsSession FzfFsSession__parse_session "$FZF_FS_SESSION";
+                        FZF_FS_SESSION="$?"
+                        if ((FZF_FS_SESSION == 255))
+                        then
+                                builtin return 255
+                        else
+                                builtin . "${FZF_FS_CONFIG_DIR}/cache/sessions/info.sessions";
+                                FZF_FS_SESSION="${sessions_ids[$FZF_FS_SESSION]}";
+                                FzfFsSession FzfFsSession__register_client;
+                                builtin unset -v \
+                                        buffers \
+                                        clients \
+                                        sessions \
+                                        sessions_ids \
+                                        sessions_status;
+                                if builtin . "${FZF_FS_CONFIG_DIR}/cache/sessions/${FZF_FS_SESSION}/etc/env"
+                                then
+                                        builtin . "${FZF_FS_CONFIG_DIR}/default/lib/core.sh" &&
+                                        FzfFsCore FzfFsCore__dump_env | command tee "${FZF_FS_CONFIG_DIR}/cache/clients/${FZF_FS_CLIENT}/env.client" > "${FZF_FS_CONFIG_DIR}/cache/sessions/${FZF_FS_SESSION}/var/env.session";
+                                        #return
+                                        FzfFsMain__get_ls;
+                                        FzfFsCore FzfFsCore__buffer;
+                                else
+                                        { command printf '%s\n' "${source}:Error:81: Environment file missing" 1>&2 ; builtin return 81 ; }
+                                fi;
+                        fi
+                else
+                        { command printf '%s\n' "${source}:Error:82: Could not source all required submodules" 1>&2 ; builtin return 82 ; }
+                fi;
+        };
+
+        function FzfFsMain__source_deps ()
+        {
+                builtin . ls-wrapper.sh &&
+                builtin . fzf-wrapper.sh &&
+                builtin . macro.sh &&
+                builtin . spath.sh &&
+                builtin . fzf-fs-work-in-progress
+
+        };
+
+        # -- MAIN.
+
+        builtin unset -v ret;
         builtin typeset -i ret;
 
-        FzfFsMain__prepare_sh 2>/dev/null;
-        FzfFsMain__get_args "$@";
-        ret="$?"
+        FzfFsMain__main "$@";
 
-        #~ if ((ret == 111)); then
-            #~ builtin . "${FZF_FS_CONFIG_DIR}/browser/env.cache";
-            #~ __fzffs_on_reload;
-            #~ __fzffs_main "$PWD";
-        #~ else
-            #~ __fzffs_cursor 1;
-            #~ __fzffs_on_quit;
-            #~ #exec 9<&-;
-            #~ #exec 9>&-;
-            #~ builtin return "$ret";
-        #~ fi
-    };
+        ret="$?";
 
-    function FzfFsMain__prepare_sh ()
-    {
-        if [[ -n "$BASH_VERSION" ]]; then
-            source="${BASH_SOURCE[0]}";
-            builtin . "${FZF_FS_CONFIG_DIR}/default/lib/prepare_bash.sh" && FzfFsPrepareBash;
-        else
-            if [[ -n "$ZSH_VERSION" ]]; then
-                source="${(%):-%x}";
-                builtin . "${FZF_FS_CONFIG_DIR}/default/lib/prepare_zsh.sh" && FzfFsPrepareZsh;
-            else
-                source="$0";
-                [[ -n "$KSH_VERSION" ]] &&
-                builtin . "${FZF_FS_CONFIG_DIR}/default/lib/prepare_mksh.sh" &&
-                FzfFsPrepareMksh;
-            fi;
-        fi;
-    };
+        builtin unset -f \
+                FzfFsMain__get_args \
+                FzfFsMain__main \
+                FzfFsMain__prepare_sh;
 
-    function FzfFsMain__run ()
-    {
-        if FzfFsMain__source_deps; then
-            FzfFsSession FzfFsSession__parse_session "$FZF_FS_SESSION";
-            FZF_FS_SESSION="$?"
-            if ((FZF_FS_SESSION == 255))
-            then
-                builtin return 255
-            else
-                builtin . "${FZF_FS_CONFIG_DIR}/cache/sessions/info.sessions";
-                FZF_FS_SESSION="${sessions_ids[$FZF_FS_SESSION]}";
-                FzfFsSession FzfFsSession__register_client;
-                builtin unset -v \
-                    buffers \
-                    clients \
-                    sessions \
-                    sessions_ids \
-                    sessions_status;
-                if builtin . "${FZF_FS_CONFIG_DIR}/cache/sessions/${FZF_FS_SESSION}/etc/env"; then
-                    builtin . "${FZF_FS_CONFIG_DIR}/default/lib/core.sh" &&
-                    FzfFsCore FzfFsCore__dump_env | command tee "${FZF_FS_CONFIG_DIR}/cache/clients/${FZF_FS_CLIENT}/env.client" > "${FZF_FS_CONFIG_DIR}/cache/sessions/${FZF_FS_SESSION}/var/env.session";
-                    #return
-                    FzfFsMain__get_ls;
-                    FzfFsCore FzfFsCore__buffer;
-                else
-                    { command printf '%s\n' "${source}:Error:81: Environment file missing" 1>&2 ; builtin return 81 ; }
-                fi;
-            fi
-        else
-            { command printf '%s\n' "${source}:Error:82: Could not source all required submodules" 1>&2 ; builtin return 82 ; }
-        fi;
-    };
-
-    function FzfFsMain__source_deps ()
-    {
-        builtin . ls-wrapper.sh &&
-        builtin . fzf-wrapper.sh &&
-        builtin . macro.sh &&
-        builtin . spath.sh &&
-        builtin . fzf-fs-work-in-progress
-
-    };
-
-    # -- UTILS.
-
-    function FzfFsMain__san ()
-    {
-        case "$1" in
-            -[fn])
-                IFS=" " builtin unset ${*}
-            ;;
-            *)
-                IFS=" " builtin unset -v ${*}
-        esac
-    };
-
-    # -- SOURCE.
-
-    # -- MAIN.
-
-    FzfFsMain__san ret;
-    int ret;
-
-    FzfFsMain__main "$@";
-
-    ret="$?";
-
-    # -- POST.
-
-    FzfFsMain__san -f \
-        FzfFsMain__get_args \
-        FzfFsMain__main \
-        FzfFsMain__prepare_sh \
-        FzfFsMain__san;
-
-    builtin return "$ret"
+        builtin return "$ret"
 }
 
 FzfFsMain "$@"

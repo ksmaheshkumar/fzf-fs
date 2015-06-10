@@ -6,20 +6,20 @@ __fzf_fs_console_console ()
     builtin typeset -a chars files matches query selection strings;
     console[2]=1;
     files=($(
-                    command find -H "${FZF_FS_CONFIG_DIR}/sessions/${FZF_FS_SESSION}/bin/console/." ! -name . |
-                    command sed "s#^${FZF_FS_CONFIG_DIR}/sessions/${FZF_FS_SESSION}/bin/console/./##" |
-                    command sort -u
-                ));
+                                command find -H "${FZF_FS_CONFIG_DIR}/sessions/${FZF_FS_SESSION}/bin/console/." ! -name . |
+                                command sed "s#^${FZF_FS_CONFIG_DIR}/sessions/${FZF_FS_SESSION}/bin/console/./##" |
+                                command sort -u
+                        ));
     while [[ -n "${console[3]}" ]]; do
         selection=($(
-                        command printf '%s\n' "${files[@]}" |
-                        command fzf -x +s --print-query --prompt=":" --expect="ctrl-i" --query="$query"
-                    ));
+                                        command printf '%s\n' "${files[@]}" |
+                                        command fzf -x +s --print-query --prompt=":" --expect="ctrl-i" --query="$query"
+                                ));
         if [[ -n "${selection[0]}" && "${selection[1]}" == "ctrl-i" ]]; then
             matches=($(
-                            command printf '%s\n' "${files[@]}" |
-                            command grep -e "^${selection[0]}"
-                        ));
+                                                command printf '%s\n' "${files[@]}" |
+                                                command grep -e "^${selection[0]}"
+                                        ));
             if ((${#matches[@]} > 1)); then
                 count=0;
                 strings=(${matches[@]#${selection[0]}});

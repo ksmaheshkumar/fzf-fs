@@ -36,21 +36,10 @@ FzfFsPrepareZsh ()
     { 
         IFS=" " builtin printf "%q\n" "$*"
     };
-    function FzfFsPrepareZsh__san () 
-    { 
-        case "$1" in 
-            -[fn])
-                IFS=" " builtin unset ${*}
-            ;;
-            *)
-                IFS=" " builtin unset -v ${*}
-            ;;
-        esac
-    };
-    FzfFsPrepareZsh__san ret;
+    builtin unset -v ret;
     builtin typeset -i ret;
     FzfFsPrepareZsh__main "$@";
     ret="$?";
-    FzfFsPrepareZsh__san -f FzfFsPrepareZsh__main FzfFsPrepareZsh__san;
+    builtin unset -f FzfFsPrepareZsh__main;
     builtin return "$ret"
 }

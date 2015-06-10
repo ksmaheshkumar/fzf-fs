@@ -29,326 +29,372 @@
 
 # -- ALIASES.
 
-{ builtin shopt -s expand_aliases ; } 2> /dev/null
+#{ builtin shopt -s expand_aliases ; } 2> /dev/null
+#builtin alias array='builtin typeset -a'
+#builtin alias const='builtin typeset -r'
+#builtin alias iarray='builtin typeset -ai'
+#builtin alias int='builtin typeset -i'
+#builtin alias itable='builtin typeset -Ai'
+#builtin alias ref='builtin typeset -n'
+#builtin alias string='builtin typeset +i'
+#builtin alias table='builtin typeset -A'
 
-builtin alias array='builtin typeset -a'
-builtin alias const='builtin typeset -r'
-builtin alias iarray='builtin typeset -ai'
-builtin alias int='builtin typeset -i'
-builtin alias itable='builtin typeset -Ai'
-builtin alias ref='builtin typeset -n'
-builtin alias string='builtin typeset +i'
-builtin alias table='builtin typeset -A'
+# -- FUNCTIONS.
 
-# -- MODULES.
-
-FzfFsInit ()
+__fzf_fs_init_console ()
 {
-    # -- FUNCTIONS.
-
-    function FzfFsInit__init_console ()
-    {
         function __fzf_fs_console_cd ()
         {
-            builtin unset -v console_prompt tmp;
-            builtin typeset console_prompt="${console[0]##*/}" tmp;
-            [[ -n "${console[1]}" || "${console[2]}" -eq 0 ]] || {
-                if [[ -n "$KSH_VERSION" ]]; then
-                    console[1]="$(command fzf --prompt=":${console_prompt} " --print-query <<< "")";
-                else
-                    command tput sc;
-                    command tput cup 99999 0;
-                    builtin unset -v tmp;
-                    builtin typeset tmp;
-                    if [[ -n "$ZSH_VERSION" ]]; then
-                        builtin vared -p ":${console_prompt} " tmp;
-                    else
-                        builtin read -re -p ":${console_prompt} " tmp;
-                    fi;
-                    console[1]="$tmp";
-                    command tput rc;
-                    command tput ed;
-                fi
-            };
-            builtin set -- ${console[1]};
-            (($# > 0)) && {
-                MACRO_FILE="${FZF_FS_CONFIG_DIR}/sessions/${FZF_FS_SESSION}/etc/macros" __macro_do "console[1]" "$*"
-            };
-            builtin cd "$(builtin eval __fzf_fs_echon "${console[1]}")";
-            cwd[3]="$PWD";
-            FzfFsCore__update_cwd;
-            console[1]=
+                builtin unset -v console_prompt tmp;
+                builtin typeset console_prompt="${console[0]##*/}" tmp;
+
+                [[ -n "${console[1]}" || "${console[2]}" -eq 0 ]] || {
+                        if [[ -n "$KSH_VERSION" ]]
+                        then
+                                console[1]="$(command fzf --prompt=":${console_prompt} " --print-query <<< "")";
+                        else
+                                command tput sc;
+                                command tput cup 99999 0;
+                                builtin unset -v tmp;
+                                builtin typeset tmp;
+                                if [[ -n "$ZSH_VERSION" ]]
+                                then
+                                        builtin vared -p ":${console_prompt} " tmp;
+                                else
+                                        builtin read -re -p ":${console_prompt} " tmp;
+                                fi;
+                                console[1]="$tmp";
+                                command tput rc;
+                                command tput ed;
+                        fi
+                };
+
+                builtin set -- ${console[1]};
+                (($# > 0)) && {
+                        MACRO_FILE="${FZF_FS_CONFIG_DIR}/sessions/${FZF_FS_SESSION}/etc/macros" __macro_do "console[1]" "$*"
+                };
+
+                builtin cd "$(builtin eval __fzf_fs_echon "${console[1]}")";
+                cwd[3]="$PWD";
+                FzfFsCore__update_cwd;
+                console[1]=
         };
 
         function __fzf_fs_console_cd_up ()
         {
-            builtin unset -v console_prompt tmp;
-            builtin typeset console_prompt="${console[0]##*/}" tmp;
-            [[ -n "${console[1]}" || "${console[2]}" -eq 0 ]] || {
-                if [[ -n "$KSH_VERSION" ]]; then
-                    console[1]="$(command fzf --prompt=":${console_prompt} " --print-query <<< "")";
-                else
-                    command tput sc;
-                    command tput cup 99999 0;
-                    if [[ -n "$ZSH_VERSION" ]]; then
-                        builtin vared -p ":${console_prompt} " tmp;
-                    else
-                        builtin read -re -p ":${console_prompt} " tmp;
-                    fi;
-                    console[1]="$tmp";
-                    command tput rc;
-                    command tput ed;
-                fi
-            };
-            [[ -z "${console[1]//[0-9]/}" ]] && {
-                tmp="$(command printf '%*s' "${console[1]:-1}" "")";
-                builtin cd "$(command printf '%s' "${tmp// /..\/}")";
-                cwd[3]="$PWD";
-                FzfFsCore__update_cwd
-            };
-            console[1]=
+                builtin unset -v console_prompt tmp;
+                builtin typeset console_prompt="${console[0]##*/}" tmp;
+
+                [[ -n "${console[1]}" || "${console[2]}" -eq 0 ]] || {
+                        if [[ -n "$KSH_VERSION" ]]
+                        then
+                                console[1]="$(command fzf --prompt=":${console_prompt} " --print-query <<< "")";
+                        else
+                                command tput sc;
+                                command tput cup 99999 0;
+                                if [[ -n "$ZSH_VERSION" ]]
+                                then
+                                        builtin vared -p ":${console_prompt} " tmp;
+                                else
+                                        builtin read -re -p ":${console_prompt} " tmp;
+                                fi;
+                                console[1]="$tmp";
+                                command tput rc;
+                                command tput ed;
+                        fi
+                };
+
+                [[ -z "${console[1]//[0-9]/}" ]] && {
+                        tmp="$(command printf '%*s' "${console[1]:-1}" "")";
+                        builtin cd "$(command printf '%s' "${tmp// /..\/}")";
+                        cwd[3]="$PWD";
+                        FzfFsCore__update_cwd
+                };
+
+                console[1]=
         };
 
         function __fzf_fs_console_console ()
         {
-            builtin unset -v chars count files matches query selection strings;
-            builtin typeset -i count;
-            builtin typeset -a chars files matches query selection strings;
-            console[2]=1;
-            files=(
-                $(
-                    command find -H "${FZF_FS_CONFIG_DIR}/sessions/${FZF_FS_SESSION}/bin/console/." ! -name . |
-                    command sed "s#^${FZF_FS_CONFIG_DIR}/sessions/${FZF_FS_SESSION}/bin/console/./##" |
-                    command sort -u
-                )
-            );
-            while [[ -n "${console[3]}" ]]; do
-                selection=(
-                    $(
-                        command printf '%s\n' "${files[@]}" |
-                        command fzf -x +s --print-query --prompt=":" --expect="ctrl-i" --query="$query"
-                    )
-                );
-                if [[ -n "${selection[0]}" && "${selection[1]}" == "ctrl-i" ]]; then
-                    matches=(
+                builtin unset -v chars count files matches query selection strings;
+                builtin typeset -i count;
+                builtin typeset -a chars files matches query selection strings;
+
+                console[2]=1;
+
+                files=(
                         $(
-                            command printf '%s\n' "${files[@]}" |
-                            command grep -e "^${selection[0]}"
+                                command find -H "${FZF_FS_CONFIG_DIR}/sessions/${FZF_FS_SESSION}/bin/console/." ! -name . |
+                                command sed "s#^${FZF_FS_CONFIG_DIR}/sessions/${FZF_FS_SESSION}/bin/console/./##" |
+                                command sort -u
                         )
-                    );
-                    if ((${#matches[@]} > 1)); then
-                        count=0;
-                        strings=(${matches[@]#${selection[0]}});
-                        chars=();
-                        while [[ -n "${strings[0]}" ]]; do
-                            for i in "${!strings[@]}"; do
-                                chars[$i]="${strings[$i]:0:1}";
-                            done;
-                            if [[ -z "$(command printf '%s' "${chars[@]//${chars[0]}}")" ]]; then
-                                count+=1;
-                                for i in "${!strings[@]}"; do
-                                    strings[$i]="${strings[$i]#${chars[$i]}}";
-                                done;
-                            else
-                                strings[0]=;
-                            fi;
-                        done;
-                        if ((count == 0)); then
-                            query="${selection[0]}";
+                );
+
+                while [[ -n "${console[3]}" ]]
+                do
+                        selection=(
+                                $(
+                                        command printf '%s\n' "${files[@]}" |
+                                        command fzf -x +s --print-query --prompt=":" --expect="ctrl-i" --query="$query"
+                                )
+                        );
+                        if [[ -n "${selection[0]}" && "${selection[1]}" == "ctrl-i" ]]
+                        then
+                                matches=(
+                                        $(
+                                                command printf '%s\n' "${files[@]}" |
+                                                command grep -e "^${selection[0]}"
+                                        )
+                                );
+                                if ((${#matches[@]} > 1))
+                                then
+                                        count=0;
+                                        strings=(${matches[@]#${selection[0]}});
+                                        chars=();
+                                        while [[ -n "${strings[0]}" ]]
+                                        do
+                                                for i in "${!strings[@]}"
+                                                do
+                                                        chars[$i]="${strings[$i]:0:1}";
+                                                done;
+                                                if [[ -z "$(command printf '%s' "${chars[@]//${chars[0]}}")" ]]
+                                                then
+                                                        count+=1;
+                                                        for i in "${!strings[@]}"
+                                                        do
+                                                                strings[$i]="${strings[$i]#${chars[$i]}}";
+                                                        done;
+                                                else
+                                                        strings[0]=;
+                                                fi;
+                                        done;
+                                        if ((count == 0))
+                                        then
+                                                query="${selection[0]}";
+                                        else
+                                                query="${matches[0]:0:${#selection[0]}+count}";
+                                        fi;
+                                else
+                                        if ((${#matches[@]} == 1))
+                                        then
+                                                query="${matches[0]}";
+                                        else
+                                                query="${selection[0]}";
+                                        fi;
+                                fi;
+                                builtin continue;
                         else
-                            query="${matches[0]:0:${#selection[0]}+count}";
+                                if [[ "${selection[0]}" == "ctrl-i" ]]
+                                then
+                                        query=;
+                                        builtin continue;
+                                else
+                                        if [[ -n "${selection[0]}" && -n "${selection[1]}" ]]
+                                        then
+                                                console[3]="${selection[1]}";
+                                        else
+                                                console[3]="${selection[0]}";
+                                        fi;
+                                        query=;
+                                fi;
                         fi;
-                    else
-                        if ((${#matches[@]} == 1)); then
-                            query="${matches[0]}";
-                        else
-                            query="${selection[0]}";
-                        fi;
-                    fi;
-                    builtin continue;
-                else
-                    if [[ "${selection[0]}" == "ctrl-i" ]]; then
-                        query=;
-                        builtin continue;
-                    else
-                        if [[ -n "${selection[0]}" && -n "${selection[1]}" ]]; then
-                            console[3]="${selection[1]}";
-                        else
-                            console[3]="${selection[0]}";
-                        fi;
-                        query=;
-                    fi;
-                fi;
-                console[0]="${FZF_FS_CONFIG_DIR}/sessions/${FZF_FS_SESSION}/bin/console/${console[3]}";
-                [[ -f "${console[0]}" ]] && builtin eval . "${console[0]}";
-            done;
-            console[2]=0
+                        console[0]="${FZF_FS_CONFIG_DIR}/sessions/${FZF_FS_SESSION}/bin/console/${console[3]}";
+                        [[ -f "${console[0]}" ]] && builtin eval . "${console[0]}";
+                done;
+
+                console[2]=0
         };
 
         function __fzf_fs_console_edit ()
         {
-            builtin unset -v console_prompt tmp;
-            builtin typeset console_prompt="${console[0]##*/}" tmp;
-            [[ -n "${console[1]}" || "${console[2]}" -eq 0 ]] || {
-                if [[ -n "$KSH_VERSION" ]]; then
-                    console[1]="$(command fzf --prompt=":${console_prompt} " --print-query <<< "")";
-                else
-                    command tput sc;
-                    command tput cup 99999 0;
-                    if [[ -n "$ZSH_VERSION" ]]; then
-                        builtin vared -p ":${console_prompt} " tmp;
-                    else
-                        builtin read -re -p ":${console_prompt} " tmp;
-                    fi;
-                    console[1]="$tmp";
-                    command tput rc;
-                    command tput ed;
-                fi
-            };
-            builtin set -- ${console[1]};
-            (($# > 0)) && {
-                MACRO_FILE="${FZF_FS_CONFIG_DIR}/sessions/${FZF_FS_SESSION}/etc/macros" __macro_do "console[1]" "$*"
-            };
-            builtin eval ${EDITOR} "${console[1]}";
-            console[1]=
+                builtin unset -v console_prompt tmp;
+                builtin typeset console_prompt="${console[0]##*/}" tmp;
+
+                [[ -n "${console[1]}" || "${console[2]}" -eq 0 ]] || {
+                        if [[ -n "$KSH_VERSION" ]]
+                        then
+                                console[1]="$(command fzf --prompt=":${console_prompt} " --print-query <<< "")";
+                        else
+                                command tput sc;
+                                command tput cup 99999 0;
+                                if [[ -n "$ZSH_VERSION" ]]
+                                then
+                                        builtin vared -p ":${console_prompt} " tmp;
+                                else
+                                        builtin read -re -p ":${console_prompt} " tmp;
+                                fi;
+                                console[1]="$tmp";
+                                command tput rc;
+                                command tput ed;
+                        fi
+                };
+
+                builtin set -- ${console[1]};
+                (($# > 0)) && {
+                        MACRO_FILE="${FZF_FS_CONFIG_DIR}/sessions/${FZF_FS_SESSION}/etc/macros" __macro_do "console[1]" "$*"
+                };
+
+                builtin eval ${EDITOR} "${console[1]}";
+                console[1]=
         };
 
         function __fzf_fs_console_open_with ()
         {
-            builtin unset -v console_prompt tmp;
-            builtin typeset console_prompt="${console[0]##*/}" tmp;
-            [[ -n "${console[1]}" ]] || {
-                if [[ -n "$KSH_VERSION" ]]; then
-                    console[1]="$(command fzf --prompt=":${console_prompt} " --print-query <<< "")";
-                else
-                    command tput sc;
-                    command tput cup 99999 0;
-                    if [[ -n "$ZSH_VERSION" ]]; then
-                        builtin vared -p ":${console_prompt} " tmp;
-                    else
-                        builtin read -re -p ":${console_prompt} " tmp;
-                    fi;
-                    console[1]="$tmp";
-                    command tput rc;
-                    command tput ed;
-                fi
-            };
-            builtin set -- ${console[1]};
-            (($# > 0)) && {
-                MACRO_FILE="${FZF_FS_CONFIG_DIR}/sessions/${FZF_FS_SESSION}/etc/macros" \
-                    __macro_do "console[1]" "$*";
-            };
-            builtin eval "$(__fzf_fs_echon builtin eval "${console[1]}")";
-            console[1]=
+                builtin unset -v console_prompt tmp;
+                builtin typeset console_prompt="${console[0]##*/}" tmp;
+
+                [[ -n "${console[1]}" ]] || {
+                        if [[ -n "$KSH_VERSION" ]]
+                        then
+                                console[1]="$(command fzf --prompt=":${console_prompt} " --print-query <<< "")";
+                        else
+                                command tput sc;
+                                command tput cup 99999 0;
+                                if [[ -n "$ZSH_VERSION" ]]
+                                then
+                                        builtin vared -p ":${console_prompt} " tmp;
+                                else
+                                        builtin read -re -p ":${console_prompt} " tmp;
+                                fi;
+                                console[1]="$tmp";
+                                command tput rc;
+                                command tput ed;
+                        fi
+                };
+
+                builtin set -- ${console[1]};
+                (($# > 0)) && {
+                        MACRO_FILE="${FZF_FS_CONFIG_DIR}/sessions/${FZF_FS_SESSION}/etc/macros" \
+                                __macro_do "console[1]" "$*";
+                };
+
+                builtin eval "$(__fzf_fs_echon builtin eval "${console[1]}")";
+                console[1]=
         };
 
         function __fzf_fs_console_page ()
         {
-            builtin unset -v console_prompt tmp;
-            builtin typeset console_prompt="${console[0]##*/}" tmp;
-            [[ -n "${console[1]}" || "${console[2]}" -eq 0 ]] || {
-                if [[ -n "$KSH_VERSION" ]]; then
-                    console[1]="$(command fzf --prompt=":${console_prompt} " --print-query <<< "")";
-                else
-                    command tput sc;
-                    command tput cup 99999 0;
-                    if [[ -n "$ZSH_VERSION" ]]; then
-                        builtin vared -p ":${console_prompt} " tmp;
-                    else
-                        builtin read -re -p ":${console_prompt} " tmp;
-                    fi;
-                    console[1]="$tmp";
-                    command tput rc;
-                    command tput ed;
-                fi
-            };
-            builtin set -- ${console[1]};
-            (($# > 0)) && {
-                MACRO_FILE="${FZF_FS_CONFIG_DIR}/sessions/${FZF_FS_SESSION}/etc/macros" __macro_do "console[1]" "$*"
-            };
-            builtin eval ${PAGER} "${console[1]}";
-            console[1]=
+                builtin unset -v console_prompt tmp;
+                builtin typeset console_prompt="${console[0]##*/}" tmp;
+
+                [[ -n "${console[1]}" || "${console[2]}" -eq 0 ]] || {
+                        if [[ -n "$KSH_VERSION" ]]
+                        then
+                                console[1]="$(command fzf --prompt=":${console_prompt} " --print-query <<< "")";
+                        else
+                                command tput sc;
+                                command tput cup 99999 0;
+                                if [[ -n "$ZSH_VERSION" ]]
+                                then
+                                        builtin vared -p ":${console_prompt} " tmp;
+                                else
+                                        builtin read -re -p ":${console_prompt} " tmp;
+                                fi;
+                                console[1]="$tmp";
+                                command tput rc;
+                                command tput ed;
+                        fi
+                };
+
+                builtin set -- ${console[1]};
+                (($# > 0)) && {
+                        MACRO_FILE="${FZF_FS_CONFIG_DIR}/sessions/${FZF_FS_SESSION}/etc/macros" __macro_do "console[1]" "$*"
+                };
+
+                builtin eval ${PAGER} "${console[1]}";
+                console[1]=
         };
 
         function __fzf_fs_console_quit ()
         {
-            builtin :
+                builtin :
         };
 
         function __fzf_fs_console_quit_session ()
         {
-            cwd[3]=;
-            FZF_FS_BUFFER="quit";
-            FZF_FS_BUFFER_OLD="quit";
-            builtin break
+                cwd[3]=;
+                FZF_FS_BUFFER="quit";
+                FZF_FS_BUFFER_OLD="quit";
+                builtin break
         };
 
         function __fzf_fs_console_reload ()
         {
-            cwd[3]=;
-            FZF_FS_BUFFER="reload";
-            FZF_FS_BUFFER_OLD="reload";
-            builtin break
+                cwd[3]=;
+                FZF_FS_BUFFER="reload";
+                FZF_FS_BUFFER_OLD="reload";
+                builtin break
         };
 
         function __fzf_fs_console_shell ()
         {
-            builtin unset -v console_prompt tmp;
-            builtin typeset console_prompt="${console[0]##*/}" tmp;
-            [[ -n "${console[1]}" || "${console[2]}" -eq 0 ]] || {
-                if [[ -n "$KSH_VERSION" ]]; then
-                    console[1]="$(command fzf --prompt=":${console_prompt} " --print-query <<< "")";
+                builtin unset -v console_prompt tmp;
+                builtin typeset console_prompt="${console[0]##*/}" tmp;
+                [[ -n "${console[1]}" || "${console[2]}" -eq 0 ]] || {
+                        if [[ -n "$KSH_VERSION" ]]
+                        then
+                                console[1]="$(command fzf --prompt=":${console_prompt} " --print-query <<< "")";
+                        else
+                                command tput sc;
+                                command tput cup 99999 0;
+                                if [[ -n "$ZSH_VERSION" ]]
+                                then
+                                        builtin vared -p ":${console_prompt} " tmp;
+                                else
+                                        builtin read -re -p ":${console_prompt} " tmp;
+                                fi;
+                                console[1]="$tmp";
+                                command tput rc;
+                                command tput ed;
+                        fi
+                };
+
+                builtin set -- ${console[1]};
+                (($# > 0)) && {
+                        builtin . "${FZF_FS_CONFIG_DIR}/sessions/${FZF_FS_SESSION}/etc/flags" "$1" && builtin shift 1;
+                        MACRO_FILE="${FZF_FS_CONFIG_DIR}/sessions/${FZF_FS_SESSION}/etc/macros" \
+                                __macro_do "console[1]" "$*";
+                };
+
+                [[ "${console[5]}" -eq 1 ]] || builtin unset -v "console[5]";
+
+                if [[ "${console[6]}" -eq 1 ]]
+                then
+                        if [[ "${console[4]}" -eq 1 ]]
+                        then
+                                ( builtin eval ${TERMINAL} -e "${console[1]}\;${console[5]:+${SHELL:-sh}}" \& );
+                        else
+                                builtin eval ${TERMINAL} -e "${console[1]}\;${console[5]:+${SHELL:-sh}}";
+                        fi;
                 else
-                    command tput sc;
-                    command tput cup 99999 0;
-                    if [[ -n "$ZSH_VERSION" ]]; then
-                        builtin vared -p ":${console_prompt} " tmp;
-                    else
-                        builtin read -re -p ":${console_prompt} " tmp;
-                    fi;
-                    console[1]="$tmp";
-                    command tput rc;
-                    command tput ed;
-                fi
-            };
-            builtin set -- ${console[1]};
-            (($# > 0)) && {
-                builtin . "${FZF_FS_CONFIG_DIR}/sessions/${FZF_FS_SESSION}/etc/flags" "$1" && builtin shift 1;
-                MACRO_FILE="${FZF_FS_CONFIG_DIR}/sessions/${FZF_FS_SESSION}/etc/macros" \
-                    __macro_do "console[1]" "$*";
-            };
-            [[ "${console[5]}" -eq 1 ]] || builtin unset -v "console[5]";
-            if [[ "${console[6]}" -eq 1 ]]; then
-                if [[ "${console[4]}" -eq 1 ]]; then
-                    ( builtin eval ${TERMINAL} -e "${console[1]}\;${console[5]:+${SHELL:-sh}}" \& );
-                else
-                    builtin eval ${TERMINAL} -e "${console[1]}\;${console[5]:+${SHELL:-sh}}";
+                        if [[ "${console[4]}" -eq 1 ]]
+                        then
+                                ( builtin eval ${SHELL:-sh} "${console[1]:+-c ${console[1]}}" \& );
+                        else
+                                builtin eval ${SHELL:-sh} "${console[1]:+-c ${console[1]}}" ${console[5]:+\; command printf '%s\\n' \'Press ENTER to continue\' ; builtin read};
+                        fi;
                 fi;
-            else
-                if [[ "${console[4]}" -eq 1 ]]; then
-                    ( builtin eval ${SHELL:-sh} "${console[1]:+-c ${console[1]}}" \& );
-                else
-                    builtin eval ${SHELL:-sh} "${console[1]:+-c ${console[1]}}" ${console[5]:+\; command printf '%s\\n' \'Press ENTER to continue\' ; builtin read};
-                fi;
-            fi;
-            console[1]=
+
+                console[1]=
         };
 
         function __fzf_fs_console_terminal ()
         {
-            ( command ${SHELL:-sh} -c ${TERMINAL} & )
+                ( command ${SHELL:-sh} -c ${TERMINAL} & )
         };
 
         command printf '%s\n' "Creating ${FZF_FS_CONFIG_DIR}/default/bin/console/ ... " 1>&2;
 
         builtin unset -v f s;
         builtin typeset f s;
-        while IFS='|' builtin read -r f s; do
-            command printf '  - %s' "${f} ... " 1>&2;
-            command printf '%s\n' "#!/usr/bin/env bash" > "${FZF_FS_CONFIG_DIR}/default/bin/console/${f}";
-            builtin typeset -f "$s" >> "${FZF_FS_CONFIG_DIR}/default/bin/console/${f}";
-            command printf '%s\n' "${s} \"\$@\";" "builtin unset -f ${s}" >> "${FZF_FS_CONFIG_DIR}/default/bin/console/${f}"
-            command printf '%s\n' "Done" 1>&2;
+
+        while IFS='|' builtin read -r f s
+        do
+                command printf '  - %s' "${f} ... " 1>&2;
+                command printf '%s\n' "#!/usr/bin/env bash" > "${FZF_FS_CONFIG_DIR}/default/bin/console/${f}";
+                builtin typeset -f "$s" >> "${FZF_FS_CONFIG_DIR}/default/bin/console/${f}";
+                command printf '%s\n' "${s} \"\$@\";" "builtin unset -f ${s}" >> "${FZF_FS_CONFIG_DIR}/default/bin/console/${f}"
+                command printf '%s\n' "Done" 1>&2;
         done  <<-COMMANDS
 cd_up|__fzf_fs_console_cd_up
 cd|__fzf_fs_console_cd
@@ -363,30 +409,32 @@ shell|__fzf_fs_console_shell
 terminal|__fzf_fs_console_terminal
 COMMANDS
 
-        FzfFsInit__san -f \
-            __fzf_fs_console_cd \
-            __fzf_fs_console_cd_up \
-            __fzf_fs_console_console \
-            __fzf_fs_console_edit \
-            __fzf_fs_console_open_with \
-            __fzf_fs_console_page \
-            __fzf_fs_console_quit \
-            __fzf_fs_console_quit_session \
-            __fzf_fs_console_reload \
-            __fzf_fs_console_shell \
-            __fzf_fs_console_terminal
-    };
+        builtin unset -f \
+                __fzf_fs_console_cd \
+                __fzf_fs_console_cd_up \
+                __fzf_fs_console_console \
+                __fzf_fs_console_edit \
+                __fzf_fs_console_open_with \
+                __fzf_fs_console_page \
+                __fzf_fs_console_quit \
+                __fzf_fs_console_quit_session \
+                __fzf_fs_console_reload \
+                __fzf_fs_console_shell \
+                __fzf_fs_console_terminal
+};
 
-    function FzfFsInit__init_console_set ()
-    {
+__fzf_fs_init_console_set ()
+{
         command printf '%s\n' "Creating ${FZF_FS_CONFIG_DIR}/default/bin/console/set/ ... " 1>&2;
 
         builtin unset -v f s;
         builtin typeset f= s=;
-        while IFS='|' builtin read -r f s; do
-            command printf '  - %s' "${f} ... " 1>&2;
-            command printf '%s\n' "#!/usr/bin/env bash" "${s};" "FzfFsCore__update_env" > "${FZF_FS_CONFIG_DIR}/default/bin/console/set/${f}";
-            command printf '%s\n' "Done" 1>&2;
+
+        while IFS='|' builtin read -r f s
+        do
+                command printf '  - %s' "${f} ... " 1>&2;
+                command printf '%s\n' "#!/usr/bin/env bash" "${s};" "FzfFsCore__update_env" > "${FZF_FS_CONFIG_DIR}/default/bin/console/set/${f}";
+                command printf '%s\n' "Done" 1>&2;
         done  <<-'SETTINGS'
 bg_black_false|FZF_FS_BG_BLACK=0
 bg_black_true|FZF_FS_BG_BLACK=1
@@ -461,15 +509,15 @@ status_bar_on_top_true|FZF_FS_STATUSBAR_TOP=1
 status_bar_on_top_false|FZF_FS_STATUSBAR_TOP=0
 status_bar_on_top_toggle|FZF_FS_STATUSBAR_TOP="$((FZF_FS_STATUSBAR_TOP ? 0 : 1))"
 SETTINGS
-    };
+};
 
-    function FzfFsInit__init_env ()
-    {
+__fzf_fs_init_env ()
+{
         command printf '%s' "Creating ${FZF_FS_CONFIG_DIR}/default/etc/env ... " 1>&2;
 
         builtin unset -v env;
         {
-            builtin typeset env="$(</dev/fd/0)"
+                builtin typeset env="$(</dev/fd/0)"
         }  <<-'ENV'
 builtin typeset -i FZF_FS_BG_BLACK="${FZF_FS_BG_BLACK:-0}"
 builtin typeset -i FZF_FS_EXTENDED="${FZF_FS_EXTENDED:-0}"
@@ -510,56 +558,56 @@ builtin typeset -x LC_COLLATE=C
 ENV
 
         command printf '%s\n' "#!/usr/bin/env bash" "$env" "builtin typeset FZF_FS_LS_COMMAND=\"${FZF_FS_LS_COMMAND:-${FZF_FS_LS_COMMAND}}\"" "builtin typeset FZF_FS_LS_COMMAND_COLOR=\"${FZF_FS_LS_COMMAND_COLOR:-${FZF_FS_LS_COMMAND_COLOR}}\"" > "${FZF_FS_CONFIG_DIR}/default/etc/env"
-    };
+};
 
-    function FzfFsInit__init_flags ()
-    {
+__fzf_fs_init_flags ()
+{
         command printf '%s' "Creating ${FZF_FS_CONFIG_DIR}/default/etc/flags ... " 1>&2;
 
         builtin unset -v flags_default;
         {
-            builtin typeset flags_default="$(</dev/fd/0)"
+                builtin typeset flags_default="$(</dev/fd/0)"
         }  <<-'FLAGS'
 if [[ "$1" == \-?* ]]; then
-    builtin unset -v OPTIND opt;
-    builtin typeset OPTIND=1 opt;
-    while builtin getopts ":fkt" opt "$1"; do
-        case "$opt" in
-            "f")
-                console[4]=1
-            ;;
-            "k")
-                console[5]=1
-            ;;
-            "t")
-                console[6]=1
-            ;;
-        esac
-    done;
-    builtin return 0;
+        builtin unset -v OPTIND opt;
+        builtin typeset OPTIND=1 opt;
+        while builtin getopts ":fkt" opt "$1"; do
+                case "$opt" in
+                        "f")
+                                console[4]=1
+                        ;;
+                        "k")
+                                console[5]=1
+                        ;;
+                        "t")
+                                console[6]=1
+                        ;;
+                esac
+        done;
+        builtin return 0;
 else
-    builtin return 1;
+        builtin return 1;
 fi
 FLAGS
 
         command printf '%s\n' "#!/usr/bin/env bash" "$flags_default" > "${FZF_FS_CONFIG_DIR}/default/etc/flags"
-    };
+};
 
-    function FzfFsInit__init_keybindings ()
-    {
+__fzf_fs_init_keybindings ()
+{
         command printf '%s' "Creating ${FZF_FS_CONFIG_DIR}/default/etc/keybindings_normal ... " 1>&2;
 
         builtin unset -v keybindings;
         {
-            builtin typeset keybindings="$(</dev/fd/0)"
+                builtin typeset keybindings="$(</dev/fd/0)"
         }  <<-'KEYBINDINGS'
 __fzf_fs_keybindings_normal ()
 {
-    builtin unset -v horiz;
-    builtin typeset horiz="$(command printf '%*s' "$((${COLUMNS:-$(command tput cols)} - 4))" '')";
-    {
-        key="$(command sed -n "/^${1}/ s/^.// p" | command fzf -e +i --no-sort --tac --prompt= --inline-info --expect="$2")"
-    }  <<-KEY
+        builtin unset -v horiz;
+        builtin typeset horiz="$(command printf '%*s' "$((${COLUMNS:-$(command tput cols)} - 4))" '')";
+        {
+                key="$(command sed -n "/^${1}/ s/^.// p" | command fzf -e +i --no-sort --tac --prompt= --inline-info --expect="$2")"
+        }  <<-KEY
 ${1}key     command
 ${1}$(command printf '%s\n' "${horiz// /-}")
 c1       set/colorscheme_16
@@ -628,1429 +676,1219 @@ builtin unset -v c;
 builtin typeset -a c;
 
 case "$key" in
-    [/?iaoIAO])
-        FZF_FS_MODE=search;
-        FzfFsCore__show_cursor 1;
-        builtin continue
-    ;;
-    :)
-        c='console'
-    ;;
-    !)
-        c='shell'
-    ;;
-    T)
-        c='terminal'
-    ;;
-    alt-h)
-        c='cd_up 2'
-    ;;
-    ctrl-h)
-        c='cd_up 1'
-    ;;
-    ctrl-l)
-        FzfFsCore__enter_file;
-        builtin continue
-    ;;
-    ctrl-r)
-        c='reload'
-    ;;
-    c)
-        __fzf_fs_keybindings_normal "$key" "1,b,c,d,l,w";
-        case "${key/$'\n'/}" in
-            1*)
-                c='set/colorscheme_16'
-            ;;
-            b*)
-                c='set/bg_black_toggle'
-            ;;
-            c*)
-                c='set/clicolor_force_toggle'
-            ;;
-            d*)
-                c='set/colorscheme_dark'
-            ;;
-            l*)
-                c='set/colorscheme_light'
-            ;;
-            w*)
-                c='set/colorscheme_bw'
-            ;;
-        esac
-    ;;
-    g)
-        __fzf_fs_keybindings_normal "$key" "L,M,1,2,r,/,d,e,h,l,m,o,s,u,v,-,~";
-        case "${key/$'\n'/}" in
-            -*)
-                c="cd ${OLDPWD}"
-            ;;
-            1*)
-                c='cd_up 1'
-            ;;
-            2*)
+        [/?iaoIAO])
+                FZF_FS_MODE=search;
+                FzfFsCore__show_cursor 1;
+                builtin continue
+        ;;
+        :)
+                c='console'
+        ;;
+        !)
+                c='shell'
+        ;;
+        T)
+                c='terminal'
+        ;;
+        alt-h)
                 c='cd_up 2'
-            ;;
-            L*)
-                c='cd /var/log'
-            ;;
-            M*)
-                c='cd /mnt'
-            ;;
-            [h~]*)
-                c="cd ${HOME}"
-            ;;
-            [r/]*)
-                c='cd /'
-            ;;
-            d*)
-                c='cd /dev'
-            ;;
-            e*)
-                c='cd /etc'
-            ;;
-            l*)
-                c='cd /usr/lib'
-            ;;
-            m*)
-                c='cd /media'
-            ;;
-            o*)
-                c='cd /opt'
-            ;;
-            s*)
-                c='cd /srv'
-            ;;
-            u*)
-                c='cd /usr'
-            ;;
-            v*)
-                c='cd /var'
-            ;;
-        esac
-    ;;
-    l)
-        __fzf_fs_keybindings_normal "$key" "e,l,p,n";
-        case "${key/$'\n'/}" in
-            e*)
-                c="edit ${file}"
-            ;;
-            l*)
+        ;;
+        ctrl-h)
+                c='cd_up 1'
+        ;;
+        ctrl-l)
                 FzfFsCore__enter_file;
                 builtin continue
-            ;;
-            p*)
-                c="page ${file}"
-            ;;
-            n*)
-                c='open_with'
-            ;;
-        esac
-    ;;
-    n)
-        __fzf_fs_keybindings_normal "$key" "d,e,i,p";
-        case "${key/$'\n'/}" in
-            d*)
-                c='set/opener_default'
-            ;;
-            e*)
-                c='set/opener_editor'
-            ;;
-            i*)
-                c='set/opener_interactive'
-            ;;
-            p*)
-                c='set/opener_pager'
-            ;;
-        esac
-    ;;
-    q)
-        __fzf_fs_keybindings_normal "$key" "q,!";
-        case "${key/$'\n'/}" in
-            !*)
-                c='quit!'
-            ;;
-            q*)
-                c='quit'
-            ;;
-        esac
-    ;;
-    s)
-        __fzf_fs_keybindings_normal "$key" "A,B,C,M,S,T,a,b,c,m,r,s,t";
-        case "${key/$'\n'/}" in
-            A*)
-                c[0]='set/sort_atime';
-                c[1]='set/sort_reverse_false'
-            ;;
-            B*)
-                c[0]='set/sort_basename';
-                c[1]='set/sort_reverse_false'
-            ;;
-            C*)
-                c[0]='set/sort_ctime';
-                c[1]='set/sort_reverse_false'
-            ;;
-            M*)
-                c[0]='set/sort_mtime';
-                c[1]='set/sort_reverse_false'
-            ;;
-            S*)
-                c[0]='set/sort_size';
-                c[1]='set/sort_reverse_false'
-            ;;
-            T*)
-                c[0]='set/sort_type';
-                c[1]='set/sort_reverse_false'
-            ;;
-            a*)
-                c[0]='set/sort_atime';
-                c[1]='set/sort_reverse_true'
-            ;;
-            b*)
-                c[0]='set/sort_basename';
-                c[1]='set/sort_reverse_true'
-            ;;
-            c*)
-                c[0]='set/sort_ctime';
-                c[1]='set/sort_reverse_true'
-            ;;
-            m*)
-                c[0]='set/sort_mtime';
-                c[1]='set/sort_reverse_true'
-            ;;
-            r*)
-                c='set/sort_reverse_toggle'
-            ;;
-            s*)
-                c[0]='set/sort_size';
-                c[1]='set/sort_reverse_true'
-            ;;
-            t*)
-                c[0]='set/sort_type';
-                c[1]='set/sort_reverse_true'
-            ;;
-        esac
-    ;;
-    w)
-        __fzf_fs_keybindings_normal "$key" "a,c,m";
-        case "${key/$'\n'/}" in
-            a*)
-                c='set/show_atime'
-            ;;
-            c*)
-                c='set/show_ctime'
-            ;;
-            m*)
-                c='set/show_mtime'
-            ;;
-        esac
-    ;;
-    z)
-        __fzf_fs_keybindings_normal "$key" "H,L,c,h,i,l,m,o,s";
-        case "${key/$'\n'/}" in
-            H*)
-                c='set/deference_commandline'
-            ;;
-            L*)
-                c='set/deference'
-            ;;
-            c*)
-                c='set/lc_collate_c'
-            ;;
-            h*)
-                c='set/show_hidden_toggle'
-            ;;
-            i*)
-                c='set/inline_info_toggle'
-            ;;
-            l*)
-                c='set/lc_collate_lang'
-            ;;
-            m*)
-                c='set/mouse_toggle'
-            ;;
-            o*)
-                c='set/hscroll_toggle'
-            ;;
-            s*)
-                c='set/status_bar_on_top_toggle'
-            ;;
-        esac
-    ;;
+        ;;
+        ctrl-r)
+                c='reload'
+        ;;
+        c)
+                __fzf_fs_keybindings_normal "$key" "1,b,c,d,l,w";
+                case "${key/$'\n'/}" in
+                        1*)
+                                c='set/colorscheme_16'
+                        ;;
+                        b*)
+                                c='set/bg_black_toggle'
+                        ;;
+                        c*)
+                                c='set/clicolor_force_toggle'
+                        ;;
+                        d*)
+                                c='set/colorscheme_dark'
+                        ;;
+                        l*)
+                                c='set/colorscheme_light'
+                        ;;
+                        w*)
+                                c='set/colorscheme_bw'
+                        ;;
+                esac
+        ;;
+        g)
+                __fzf_fs_keybindings_normal "$key" "L,M,1,2,r,/,d,e,h,l,m,o,s,u,v,-,~";
+                case "${key/$'\n'/}" in
+                        -*)
+                                c="cd ${OLDPWD}"
+                        ;;
+                        1*)
+                                c='cd_up 1'
+                        ;;
+                        2*)
+                                c='cd_up 2'
+                        ;;
+                        L*)
+                                c='cd /var/log'
+                        ;;
+                        M*)
+                                c='cd /mnt'
+                        ;;
+                        [h~]*)
+                                c="cd ${HOME}"
+                        ;;
+                        [r/]*)
+                                c='cd /'
+                        ;;
+                        d*)
+                                c='cd /dev'
+                        ;;
+                        e*)
+                                c='cd /etc'
+                        ;;
+                        l*)
+                                c='cd /usr/lib'
+                        ;;
+                        m*)
+                                c='cd /media'
+                        ;;
+                        o*)
+                                c='cd /opt'
+                        ;;
+                        s*)
+                                c='cd /srv'
+                        ;;
+                        u*)
+                                c='cd /usr'
+                        ;;
+                        v*)
+                                c='cd /var'
+                        ;;
+                esac
+        ;;
+        l)
+                __fzf_fs_keybindings_normal "$key" "e,l,p,n";
+                case "${key/$'\n'/}" in
+                        e*)
+                                c="edit ${file}"
+                        ;;
+                        l*)
+                                FzfFsCore__enter_file;
+                                builtin continue
+                        ;;
+                        p*)
+                                c="page ${file}"
+                        ;;
+                        n*)
+                                c='open_with'
+                        ;;
+                esac
+        ;;
+        n)
+                __fzf_fs_keybindings_normal "$key" "d,e,i,p";
+                case "${key/$'\n'/}" in
+                        d*)
+                                c='set/opener_default'
+                        ;;
+                        e*)
+                                c='set/opener_editor'
+                        ;;
+                        i*)
+                                c='set/opener_interactive'
+                        ;;
+                        p*)
+                                c='set/opener_pager'
+                        ;;
+                esac
+        ;;
+        q)
+                __fzf_fs_keybindings_normal "$key" "q,!";
+                case "${key/$'\n'/}" in
+                        !*)
+                                c='quit!'
+                        ;;
+                        q*)
+                                c='quit'
+                        ;;
+                esac
+        ;;
+        s)
+                __fzf_fs_keybindings_normal "$key" "A,B,C,M,S,T,a,b,c,m,r,s,t";
+                case "${key/$'\n'/}" in
+                        A*)
+                                c[0]='set/sort_atime';
+                                c[1]='set/sort_reverse_false'
+                        ;;
+                        B*)
+                                c[0]='set/sort_basename';
+                                c[1]='set/sort_reverse_false'
+                        ;;
+                        C*)
+                                c[0]='set/sort_ctime';
+                                c[1]='set/sort_reverse_false'
+                        ;;
+                        M*)
+                                c[0]='set/sort_mtime';
+                                c[1]='set/sort_reverse_false'
+                        ;;
+                        S*)
+                                c[0]='set/sort_size';
+                                c[1]='set/sort_reverse_false'
+                        ;;
+                        T*)
+                                c[0]='set/sort_type';
+                                c[1]='set/sort_reverse_false'
+                        ;;
+                        a*)
+                                c[0]='set/sort_atime';
+                                c[1]='set/sort_reverse_true'
+                        ;;
+                        b*)
+                                c[0]='set/sort_basename';
+                                c[1]='set/sort_reverse_true'
+                        ;;
+                        c*)
+                                c[0]='set/sort_ctime';
+                                c[1]='set/sort_reverse_true'
+                        ;;
+                        m*)
+                                c[0]='set/sort_mtime';
+                                c[1]='set/sort_reverse_true'
+                        ;;
+                        r*)
+                                c='set/sort_reverse_toggle'
+                        ;;
+                        s*)
+                                c[0]='set/sort_size';
+                                c[1]='set/sort_reverse_true'
+                        ;;
+                        t*)
+                                c[0]='set/sort_type';
+                                c[1]='set/sort_reverse_true'
+                        ;;
+                esac
+        ;;
+        w)
+                __fzf_fs_keybindings_normal "$key" "a,c,m";
+                case "${key/$'\n'/}" in
+                        a*)
+                                c='set/show_atime'
+                        ;;
+                        c*)
+                                c='set/show_ctime'
+                        ;;
+                        m*)
+                                c='set/show_mtime'
+                        ;;
+                esac
+        ;;
+        z)
+                __fzf_fs_keybindings_normal "$key" "H,L,c,h,i,l,m,o,s";
+                case "${key/$'\n'/}" in
+                        H*)
+                                c='set/deference_commandline'
+                        ;;
+                        L*)
+                                c='set/deference'
+                        ;;
+                        c*)
+                                c='set/lc_collate_c'
+                        ;;
+                        h*)
+                                c='set/show_hidden_toggle'
+                        ;;
+                        i*)
+                                c='set/inline_info_toggle'
+                        ;;
+                        l*)
+                                c='set/lc_collate_lang'
+                        ;;
+                        m*)
+                                c='set/mouse_toggle'
+                        ;;
+                        o*)
+                                c='set/hscroll_toggle'
+                        ;;
+                        s*)
+                                c='set/status_bar_on_top_toggle'
+                        ;;
+                esac
+        ;;
 esac
 KEYBINDINGS
 
         command printf '%s\n' "#!/usr/bin/env bash" "$keybindings" > "${FZF_FS_CONFIG_DIR}/default/etc/keybindings_normal"
-    };
+};
 
-    function FzfFsInit__init_lib ()
-    {
+__fzf_fs_init_lib ()
+{
         # -- MODULES.
 
         FzfFsCore ()
         {
-            # -- FUNCTIONS.
+                # -- FUNCTIONS.
 
-            function FzfFsCore__buffer ()
-            {
-                builtin unset -v checksum cursor_off cursor_on cwd file file_inode;
-                builtin typeset -a cwd;
-                builtin typeset \
-                    cursor_on="$(command tput cnorm || command tput ve)" \
-                    cursor_off="$(command tput civis || command tput vi)" \
-                    checksum \
-                    file \
-                    file_inode;
+                function FzfFsCore__buffer ()
+                {
+                        builtin unset -v checksum cursor_off cursor_on cwd file file_inode;
+                        builtin typeset -a cwd;
+                        builtin typeset \
+                                cursor_on="$(command tput cnorm || command tput ve)" \
+                                cursor_off="$(command tput civis || command tput vi)" \
+                                checksum \
+                                file \
+                                file_inode;
 
-                FzfFsCore__init_cwd;
-                FzfFsCore__complete_cwd;
-                FzfFsCore__dump_cwd | command tee "${FZF_FS_CONFIG_DIR}/cache/clients/${FZF_FS_CLIENT}/cwd.client" > "${FZF_FS_CONFIG_DIR}/cache/sessions/${FZF_FS_SESSION}/var/cwd.session";
-                FzfFsCore__checksum;
+                        FzfFsCore__init_cwd;
+                        FzfFsCore__complete_cwd;
+                        FzfFsCore__dump_cwd | command tee "${FZF_FS_CONFIG_DIR}/cache/clients/${FZF_FS_CLIENT}/cwd.client" > "${FZF_FS_CONFIG_DIR}/cache/sessions/${FZF_FS_SESSION}/var/cwd.session";
+                        FzfFsCore__checksum;
 
-                FzfFsCore__show_cursor 0;
+                        FzfFsCore__show_cursor 0;
 
-                while builtin :; do
-                    case "$FZF_FS_BUFFER" in
-                        quit)
-                            builtin return 0
-                        ;;
-                        reload)
-                            builtin return 111
-                        ;;
-                        *)
+                        while builtin :
+                        do
+                                case "$FZF_FS_BUFFER" in
+                                quit)
+                                        builtin return 0
+                                ;;
+                                reload)
+                                        builtin return 111
+                                ;;
+                                *)
+                                        FzfFsCore__navigator
+                                ;;
+                                esac;
+                        done
+                };
 
-                            FzfFsCore__navigator
-                        ;;
-                    esac;
-                done
-            };
-
-            function FzfFsCore__checksum ()
-            {
-                checksum="$(command md5sum <<-SUM
+                function FzfFsCore__checksum ()
+                {
+                        checksum="$(command md5sum <<-SUM
 li${LC_COLLATE}${FZF_FS_LS_OPTS#-}${FZF_FS_LS_SYMLINK//-/}${FZF_FS_LS_REVERSE}${FZF_FS_LS_HIDDEN}${FZF_FS_LS_CLICOLOR}${FZF_FS_SORT}${cwd[4]}
 SUM
 )";
-                checksum="${checksum[9]%% *}"
-            };
+                        checksum="${checksum[9]%% *}"
+                };
 
-            function FzfFsCore__complete_cwd ()
-            {
-                builtin unset -v tmp;
-                builtin typeset tmp;
-                __ls_get_inode "cwd[4]" ".";
-                cwd[4]="${cwd[4]%% *}";
-                __ls_get_inode "tmp" "..";
-                cwd[1]="${tmp#[0-9]* }";
-                cwd[2]="${tmp%% *}";
-            };
+                function FzfFsCore__complete_cwd ()
+                {
+                        builtin unset -v tmp;
+                        builtin typeset tmp;
+                        __ls_get_inode "cwd[4]" ".";
+                        cwd[4]="${cwd[4]%% *}";
+                        __ls_get_inode "tmp" "..";
+                        cwd[1]="${tmp#[0-9]* }";
+                        cwd[2]="${tmp%% *}"
+                };
 
-            function FzfFsCore__console ()
-            {
-                FzfFsCore__show_cursor 1;
+                function FzfFsCore__console ()
+                {
+                        FzfFsCore__show_cursor 1;
 
-                builtin unset -v cmd console;
+                        builtin unset -v cmd console;
+                        builtin typeset -a console;
+                        builtin typeset cmd;
 
-                builtin typeset -a console;
-                builtin typeset cmd;
+                        console[2]=0;
+                        console[4]=0;
+                        console[5]=0;
+                        console[6]=0;
 
-                console[2]=0;
-                console[4]=0;
-                console[5]=0;
-                console[6]=0;
+                        for cmd in "${c[@]}";
+                        do
+                                console[0]="${FZF_FS_CONFIG_DIR}/cache/sessions/${FZF_FS_SESSION}/bin/console/${cmd%% *}";
+                                if [[ "$cmd" == "${cmd/ /}" ]]
+                                then
+                                        console[1]=;
+                                else
+                                        console[1]="${cmd#* }";
+                                fi;
+                                if [[ -f "${console[0]}" ]]
+                                then
+                                        console[3]="$cmd";
+                                        builtin eval . "${console[0]}" "${console[1]}" ;
+                                else
+                                        builtin break;
+                                fi;
+                        done;
 
-                for cmd in "${c[@]}";
-                do
-                    console[0]="${FZF_FS_CONFIG_DIR}/cache/sessions/${FZF_FS_SESSION}/bin/console/${cmd%% *}";
-                    if [[ "$cmd" == "${cmd/ /}" ]]; then
-                        console[1]=;
-                    else
-                        console[1]="${cmd#* }";
-                    fi;
-                    if [[ -f "${console[0]}" ]]; then
-                        console[3]="$cmd";
-                        builtin eval . "${console[0]}" "${console[1]}" ;
-                    else
-                        builtin break;
-                    fi;
-                done;
-
-                FzfFsCore__show_cursor 0;
-            }
-
-            function FzfFsCore__dump_cwd ()
-            {
-                builtin unset -v i;
-                builtin typeset i;
-                for i in "${!cwd[@]}"; do
-                    command printf '%s\n' "cwd[$i]=\"${cwd[$i]}\""
-                done;
-                command printf '%s\n' "file=\"${file}\"" "file_inode=\"${file_inode}\""
-            };
-
-            function FzfFsCore__dump_env ()
-            {
-                command printf '%s\n' \
-                    "#!/usr/bin/env bash" \
-                    "EDITOR=\"${EDITOR}\"" \
-                    "FZF_FS_BG_BLACK=\"${FZF_FS_BG_BLACK}\"" \
-                    "FZF_FS_COLORSCHEME=\"${FZF_FS_COLORSCHEME}\"" \
-                    "FZF_FS_EXTENDED=\"${FZF_FS_EXTENDED}\"" \
-                    "FZF_FS_EXTENDED_EXACT=\"${FZF_FS_EXTENDED_EXACT}\"" \
-                    "FZF_FS_INLINE_INFO=\"${FZF_FS_INLINE_INFO}\"" \
-                    "FZF_FS_INSENSITIV=\"${FZF_FS_INSENSITIV}\"" \
-                    "FZF_FS_LS_CLICOLOR=\"${FZF_FS_LS_CLICOLOR}\"" \
-                    "FZF_FS_LS_COMMAND=\"${FZF_FS_LS_COMMAND}\"" \
-                    "FZF_FS_LS_COMMAND_COLOR=\"${FZF_FS_LS_COMMAND_COLOR}\"" \
-                    "FZF_FS_LS_HIDDEN=\"${FZF_FS_LS_HIDDEN}\"" \
-                    "FZF_FS_LS_REVERSE=\"${FZF_FS_LS_REVERSE}\"" \
-                    "FZF_FS_LS_SYMLINK=\"${FZF_FS_LS_SYMLINK}\"" \
-                    "FZF_FS_NO_HSCROLL=\"${FZF_FS_NO_HSCROLL}\"" \
-                    "FZF_FS_NO_MOUSE=\"${FZF_FS_NO_MOUSE}\"" \
-                    "FZF_FS_NO_SORT=\"${FZF_FS_NO_SORT}\"" \
-                    "FZF_FS_OPENER=\"${FZF_FS_OPENER}\"" \
-                    "FZF_FS_OPENER_DEFAULT=\"${FZF_FS_OPENER_DEFAULT}\"" \
-                    "FZF_FS_SENSITIV=\"${FZF_FS_SENSITIV}\"" \
-                    "FZF_FS_SHOW_CURSOR=\"${FZF_FS_SHOW_CURSOR}\"" \
-                    "FZF_FS_STATUSBAR_TOP=\"${FZF_FS_STATUSBAR_TOP}\"" \
-                    "FZF_FS_TAC=\"${FZF_FS_TAC}\"" \
-                    "FZF_FS_TIEBREAK=\"${FZF_FS_TIEBREAK}\"" \
-                    "LC_COLLATE=\"${LC_COLLATE}\"" \
-                    "LC_COLLATE_OLD=\"${LC_COLLATE_OLD}\"" \
-                    "PAGER=\"${PAGER}\"" \
-                    "TERMINAL=\"${TERMINAL}\""
-            };
-
-            function FzfFsCore__enter_file ()
-            {
-                if [[ -d "$file" ]]; then
-                    cwd[3]="$file";
-                    builtin cd "${cwd[3]}" && FzfFsCore__update_cwd;
-                else
-                    builtin unset -v c;
-                    builtin typeset -a c;
-                    c="open_with ${FZF_FS_OPENER} ${file}";
-                    FzfFsCore__console;
-                fi
-            };
-
-            function FzfFsCore__fzf ()
-            {
-                FzfFsCore__san prompt;
-                builtin typeset +i prompt;
-
-                case "$1" in
-                    navigator)
-                        if [[ "$FZF_FS_MODE" == "normal" ]]; then
-                            FzfFsCore FzfFsCore__prompt "$2";
-                            FZF_FLAG_ANSI="$FZF_FS_LS_CLICOLOR" \
-                            FZF_FLAG_PROMPT="$prompt" \
-                            FZF_FLAG_COLOR="$FZF_FS_COLORSCHEME" \
-                            FZF_FLAG_NO_MOUSE="$FZF_FS_NO_MOUSE" \
-                            FZF_FLAG_REVERSE="$FZF_FS_STATUSBAR_TOP" \
-                            FZF_FLAG_BLACK="$FZF_FS_BG_BLACK" \
-                            FZF_FLAG_NO_HSCROLL="$FZF_FS_NO_HSCROLL" \
-                            FZF_FLAG_INLINE_INFO="$FZF_FS_INLINE_INFO" \
-                            FZF_FLAG_NO_SORT=1 \
-                            FZF_FLAG_INSENSITIVE= \
-                            FZF_FLAG_SENSITIVE= \
-                            FZF_FLAG_EXTENDED_EXACT= \
-                            FZF_FLAG_EXTENDED= \
-                            FZF_FLAG_WITH_NTH= \
-                            FZF_FLAG_NTH= \
-                            FZF_FLAG_DELIMITER= \
-                            FZF_FLAG_TIEBREAK= \
-                            FZF_FLAG_TAC= \
-                            FZF_FLAG_SELECT_1= \
-                            FZF_FLAG_EXPECT="f1,f2,f3,f4,q,w,e,r,t,z,u,i,o,p,[,],a,s,d,f,g,h,j,k,l,;,y,x,c,v,b,n,m,Q,W,E,R,T,Z,U,I,O,P,A,S,D,F,G,H,J,K,L,Y,X,C,V,B,N,M,ä,Ä,ö,Ö,ü,Ü,,,.,1,2,3,4,5,6,7,8,9,0,-,=,~,!,@,#,$,%,^,&,*,(,),_,+,{,},:,\",|,<,>,?,ctrl-q,ctrl-w,ctrl-e,ctrl-r,ctrl-t,ctrl-z,ctrl-u,ctrl-i,ctrl-o,ctrl-a,ctrl-s,ctrl-d,ctrl-h,ctrl-l,ctrl-y,ctrl-x,ctrl-c,ctrl-v,alt-q,alt-w,alt-e,alt-r,alt-t,alt-z,alt-u,alt-i,alt-o,alt-p,alt-a,alt-s,alt-d,alt-f,alt-g,alt-h,alt-j,alt-k,alt-l,alt-y,alt-x,alt-c,alt-v,alt-b,alt-n,alt-m,\`,/,\\, " \
-                                __fzf_wrapper;
-                        else
-                            if [[ "$FZF_FS_MODE" == "find" ]]; then
-                                prompt="  >";
-                                FZF_FLAG_SELECT_1=1;
-                            else
-                                prompt="  /"
-                                FZF_FLAG_SELECT_1=0;
-                            fi;
-                            FZF_FLAG_INSENSITIVE=1 \
-                            FZF_FLAG_EXTENDED_EXACT=1 \
-                            FZF_FLAG_ANSI="$FZF_FS_LS_CLICOLOR" \
-                            FZF_FLAG_PROMPT="$prompt" \
-                            FZF_FLAG_COLOR="$FZF_FS_COLORSCHEME" \
-                            FZF_FLAG_NO_MOUSE="$FZF_FS_NO_MOUSE" \
-                            FZF_FLAG_REVERSE="$FZF_FS_STATUSBAR_TOP" \
-                            FZF_FLAG_BLACK="$FZF_FS_BG_BLACK" \
-                            FZF_FLAG_NO_HSCROLL="$FZF_FS_NO_HSCROLL" \
-                            FZF_FLAG_INLINE_INFO="$FZF_FS_INLINE_INFO" \
-                            FZF_FLAG_EXPECT="ctrl-i"
-                                __fzf_wrapper;
-                        fi
-                    ;;
-                    console)
-                        FZF_FLAG_EXPECT="ctrl-i" \
-                        FZF_FLAG_EXTENDED=1 \
-                        FZF_FLAG_NO_SORT=1 \
-                        FZF_FLAG_PRINT_QUERY=1 \
-                        FZF_FLAG_PROMPT=":" \
-                        FZF_FLAG_QUERY="$2" \
-                        FZF_FLAG_COLOR="$FZF_FS_COLORSCHEME" \
-                        FZF_FLAG_NO_MOUSE="$FZF_FS_NO_MOUSE" \
-                        FZF_FLAG_REVERSE="$FZF_FS_STATUSBAR_TOP" \
-                        FZF_FLAG_BLACK="$FZF_FS_BG_BLACK" \
-                        FZF_FLAG_NO_HSCROLL="$FZF_FS_NO_HSCROLL" \
-                        FZF_FLAG_INLINE_INFO="$FZF_FS_INLINE_INFO" \
-                            __fzf_wrapper
-                    ;;
-                esac
-            };
-
-            function FzfFsCore__init_cwd ()
-            {
-                cwd[0]="/";
-                cwd[3]="$FZF_FS_CWD";
-
-                if [[ "${cwd[3]}" == ".." ]]; then
-                    cwd[3]="${PWD%/*}";
-                else
-                    if [[ "${cwd[3]:-.}" == \. ]]; then
-                        cwd[3]="$PWD";
-                    else
-                        if [[ "${cwd[3]}" == \- ]]; then
-                            cwd[3]="$OLDPWD";
-                        else
-                            if [[ -d "${cwd[3]}" ]]; then
-                                cwd[3]="${cwd[3]%/}";
-                            else
-                                __fzf_fs_echoE "${source}:Error:79: Not a directory: '${cwd[3]}'" 1>&2;
-                                builtin return 79;
-                            fi;
-                        fi;
-                    fi;
-                fi;
-
-                cwd[3]="${cwd[3]:-${cwd[0]}}";
-
-                [[ "$PWD" == "${cwd[3]}" ]] || builtin cd "${cwd[3]}"
-            };
-
-            function FzfFsCore__list ()
-            {
-                case "$1" in
-                    navigator)
-                        LS_CHECKSUM="$checksum" \
-                        LS_COLOR="$FZF_FS_LS_CLICOLOR" \
-                        LS_DIR_NAME="${FZF_FS_CONFIG_DIR}/cache/sessions/${FZF_FS_SESSION}/var/ls" \
-                        LS_FILE_INODE="${cwd[4]}" \
-                        LS_FILE_NAME="." \
-                        LS_FLAG_a="$FZF_FS_LS_HIDDEN" \
-                        LS_FLAG_i="1" \
-                        LS_FLAG_l="1" \
-                        LS_FLAG_r="$FZF_FS_LS_REVERSE" \
-                        LS_HOOK_POST_TEE="1" \
-                        LS_HOOK_PRAE="tail -n +2" \
-                            __ls_do
-                    ;;
-                    console)
-                        command find -H "${FZF_FS_CONFIG_DIR}/console/." ! -name . |
-                        command sed "s#^${FZF_FS_CONFIG_DIR}/console/./##" |
-                        command sort -u
-                    ;;
-                esac
-            };
-
-            function FzfFsCore__main ()
-            {
-                builtin eval "$@"
-            };
-
-            function FzfFsCore__navigator ()
-            {
-                builtin unset -v key navigator;
-                builtin typeset key;
-                builtin typeset -a navigator;
-
-                FzfFsCore__show_cursor 0;
-
-                while [[ -n "${cwd[3]}" ]]; do
-                    navigator[0]="$(FzfFsCore__select "navigator" "${cwd[3]}")";
-                    if [[ "${navigator[0]}" == $'\n'* ]]; then
-                        navigator[0]="${navigator[0]/$'\n'/}";
-                        navigator[1]="${navigator[0]%% *}";
-                        if [[ "${navigator[1]}" == "${cwd[4]}" ]]; then
-                            builtin continue;
-                        else
-                            FzfFsCore__set_file;
-                            FzfFsCore__enter_file
-                        fi;
-                    else
-                        key="${navigator[0]/$'\n'*/}";
-                        navigator[0]="${navigator[0]/*$'\n'/}";
-                        if [[ -n "${navigator[0]}" ]]; then
-                            navigator[1]="${navigator[0]%% *}";
-                            [[ "${navigator[1]}" == "${cwd[4]}" ]] || FzfFsCore__set_file;
-                            FzfFsCore__show_cursor 0;
-                            if [[ "$FZF_FS_MODE" == "normal" ]]; then
-                                builtin . "${FZF_FS_CONFIG_DIR}/cache/sessions/${FZF_FS_SESSION}/etc/keybindings_normal";
-                            elif [[ "$FZF_FS_MODE" == "search" ]]; then
-                                builtin . "${FZF_FS_CONFIG_DIR}/cache/sessions/${FZF_FS_SESSION}/etc/keybindings_search";
-                            fi;
-                            FzfFsCore__console;
-                        else
-                            FZF_FS_MODE=normal;
-                            FzfFsCore__show_cursor 0;
-                        fi;
-                    fi;
-                done
-            };
-
-            function FzfFsCore__prompt ()
-            {
-                FzfFsCore__san cols prompt_leng;
-                builtin typeset -i prompt_leng;
-                builtin typeset -i cols;
-
-                cols="${COLUMNS:-$(__spath_get_cols :)}";
-                __spath_do "prompt" "${1/${HOME}/"~"}";
-                prompt="  ${USER}@${HOSTNAME}:${prompt} ";
-                prompt_leng="${#prompt}"
-            };
-
-            function FzfFsCore__select ()
-            {
-                case "$1" in
-                    navigator)
-                        FzfFsCore__list "navigator" |
-                        FzfFsCore__fzf "navigator" "$2" |
-                        __ls_remove_color;
-                    ;;
-                    console)
-                        FzfFsCore__list "console" |
-                        FzfFsCore__fzf "console" "$2";
-                    ;;
-                esac
-            };
-
-            function FzfFsCore__set_file ()
-            {
-                file="${cwd[3]}/$(__ls_find_inode : "${cwd[3]}" "${navigator[1]}")";
-                file="${file//\/\//\/}";
-                __ls_get_inode "file_inode" "$file";
-                file_inode="${file_inode%% *}"
-            };
-
-            function FzfFsCore__show_cursor ()
-            {
-                [[ "$FZF_FS_SHOW_CURSOR" -eq 0 ]] && {
-                    case "$1" in
-                        0)
-                            command printf "$cursor_off"
-                        ;;
-                        1)
-                            command printf "$cursor_on"
-                        ;;
-                    esac
+                        FzfFsCore__show_cursor 0;
                 }
-            };
 
-            function FzfFsCore__update_cwd ()
-            {
-                FzfFsCore__complete_cwd &&
-                FzfFsCore__checksum &&
-                FzfFsCore__dump_cwd | command tee "${FZF_FS_CONFIG_DIR}/cache/clients/${FZF_FS_CLIENT}/cwd.client" > "${FZF_FS_CONFIG_DIR}/cache/sessions/${FZF_FS_SESSION}/var/cwd.session"
-            };
+                function FzfFsCore__dump_cwd ()
+                {
+                        builtin unset -v i;
+                        builtin typeset i;
 
-            function FzfFsCore__update_env ()
-            {
-                FzfFsCore__checksum;
-                FzfFsCore__dump_env | command tee
-                "${FZF_FS_CONFIG_DIR}/cache/clients/${FZF_FS_CLIENT}/env.client" > "${FZF_FS_CONFIG_DIR}/cache/sessions/${FZF_FS_SESSION}/var/env.session"
-            };
+                        for i in "${!cwd[@]}"
+                        do
+                                command printf '%s\n' "cwd[$i]=\"${cwd[$i]}\""
+                        done;
 
-            # -- UTILS.
+                        command printf '%s\n' "file=\"${file}\"" "file_inode=\"${file_inode}\""
+                };
 
-            function FzfFsCore__san ()
-            {
-                case "$1" in
-                    -[fn])
-                        IFS=" " builtin unset ${*}
-                    ;;
-                    *)
-                        IFS=" " builtin unset -v ${*}
-                esac
-            };
+                function FzfFsCore__dump_env ()
+                {
+                        command printf '%s\n' \
+                                "#!/usr/bin/env bash" \
+                                "EDITOR=\"${EDITOR}\"" \
+                                "FZF_FS_BG_BLACK=\"${FZF_FS_BG_BLACK}\"" \
+                                "FZF_FS_COLORSCHEME=\"${FZF_FS_COLORSCHEME}\"" \
+                                "FZF_FS_EXTENDED=\"${FZF_FS_EXTENDED}\"" \
+                                "FZF_FS_EXTENDED_EXACT=\"${FZF_FS_EXTENDED_EXACT}\"" \
+                                "FZF_FS_INLINE_INFO=\"${FZF_FS_INLINE_INFO}\"" \
+                                "FZF_FS_INSENSITIV=\"${FZF_FS_INSENSITIV}\"" \
+                                "FZF_FS_LS_CLICOLOR=\"${FZF_FS_LS_CLICOLOR}\"" \
+                                "FZF_FS_LS_COMMAND=\"${FZF_FS_LS_COMMAND}\"" \
+                                "FZF_FS_LS_COMMAND_COLOR=\"${FZF_FS_LS_COMMAND_COLOR}\"" \
+                                "FZF_FS_LS_HIDDEN=\"${FZF_FS_LS_HIDDEN}\"" \
+                                "FZF_FS_LS_REVERSE=\"${FZF_FS_LS_REVERSE}\"" \
+                                "FZF_FS_LS_SYMLINK=\"${FZF_FS_LS_SYMLINK}\"" \
+                                "FZF_FS_NO_HSCROLL=\"${FZF_FS_NO_HSCROLL}\"" \
+                                "FZF_FS_NO_MOUSE=\"${FZF_FS_NO_MOUSE}\"" \
+                                "FZF_FS_NO_SORT=\"${FZF_FS_NO_SORT}\"" \
+                                "FZF_FS_OPENER=\"${FZF_FS_OPENER}\"" \
+                                "FZF_FS_OPENER_DEFAULT=\"${FZF_FS_OPENER_DEFAULT}\"" \
+                                "FZF_FS_SENSITIV=\"${FZF_FS_SENSITIV}\"" \
+                                "FZF_FS_SHOW_CURSOR=\"${FZF_FS_SHOW_CURSOR}\"" \
+                                "FZF_FS_STATUSBAR_TOP=\"${FZF_FS_STATUSBAR_TOP}\"" \
+                                "FZF_FS_TAC=\"${FZF_FS_TAC}\"" \
+                                "FZF_FS_TIEBREAK=\"${FZF_FS_TIEBREAK}\"" \
+                                "LC_COLLATE=\"${LC_COLLATE}\"" \
+                                "LC_COLLATE_OLD=\"${LC_COLLATE_OLD}\"" \
+                                "PAGER=\"${PAGER}\"" \
+                                "TERMINAL=\"${TERMINAL}\""
+                };
 
-            # -- SOURCE.
+                function FzfFsCore__enter_file ()
+                {
+                        if [[ -d "$file" ]]
+                        then
+                                cwd[3]="$file";
+                                builtin cd "${cwd[3]}" && FzfFsCore__update_cwd;
+                        else
+                                builtin unset -v c;
+                                builtin typeset -a c;
+                                c="open_with ${FZF_FS_OPENER} ${file}";
+                                FzfFsCore__console;
+                        fi
+                };
 
-            # -- MAIN.
+                function FzfFsCore__fzf ()
+                {
+                        builtin unset -v prompt;
+                        builtin typeset +i prompt;
 
-            FzfFsCore__san ret;
-            int ret;
+                        case "$1" in
+                        navigator)
+                                if [[ "$FZF_FS_MODE" == "normal" ]]
+                                then
+                                        FzfFsCore FzfFsCore__prompt "$2";
+                                        FZF_FLAG_ANSI="$FZF_FS_LS_CLICOLOR" \
+                                        FZF_FLAG_PROMPT="$prompt" \
+                                        FZF_FLAG_COLOR="$FZF_FS_COLORSCHEME" \
+                                        FZF_FLAG_NO_MOUSE="$FZF_FS_NO_MOUSE" \
+                                        FZF_FLAG_REVERSE="$FZF_FS_STATUSBAR_TOP" \
+                                        FZF_FLAG_BLACK="$FZF_FS_BG_BLACK" \
+                                        FZF_FLAG_NO_HSCROLL="$FZF_FS_NO_HSCROLL" \
+                                        FZF_FLAG_INLINE_INFO="$FZF_FS_INLINE_INFO" \
+                                        FZF_FLAG_NO_SORT=1 \
+                                        FZF_FLAG_INSENSITIVE= \
+                                        FZF_FLAG_SENSITIVE= \
+                                        FZF_FLAG_EXTENDED_EXACT= \
+                                        FZF_FLAG_EXTENDED= \
+                                        FZF_FLAG_WITH_NTH= \
+                                        FZF_FLAG_NTH= \
+                                        FZF_FLAG_DELIMITER= \
+                                        FZF_FLAG_TIEBREAK= \
+                                        FZF_FLAG_TAC= \
+                                        FZF_FLAG_SELECT_1= \
+                                        FZF_FLAG_EXPECT="f1,f2,f3,f4,q,w,e,r,t,z,u,i,o,p,[,],a,s,d,f,g,h,j,k,l,;,y,x,c,v,b,n,m,Q,W,E,R,T,Z,U,I,O,P,A,S,D,F,G,H,J,K,L,Y,X,C,V,B,N,M,ä,Ä,ö,Ö,ü,Ü,,,.,1,2,3,4,5,6,7,8,9,0,-,=,~,!,@,#,$,%,^,&,*,(,),_,+,{,},:,\",|,<,>,?,ctrl-q,ctrl-w,ctrl-e,ctrl-r,ctrl-t,ctrl-z,ctrl-u,ctrl-i,ctrl-o,ctrl-a,ctrl-s,ctrl-d,ctrl-h,ctrl-l,ctrl-y,ctrl-x,ctrl-c,ctrl-v,alt-q,alt-w,alt-e,alt-r,alt-t,alt-z,alt-u,alt-i,alt-o,alt-p,alt-a,alt-s,alt-d,alt-f,alt-g,alt-h,alt-j,alt-k,alt-l,alt-y,alt-x,alt-c,alt-v,alt-b,alt-n,alt-m,\`,/,\\, " \
+                                                __fzf_wrapper;
+                                else
+                                        if [[ "$FZF_FS_MODE" == "find" ]]
+                                        then
+                                                prompt="  >";
+                                                FZF_FLAG_SELECT_1=1;
+                                        else
+                                                prompt="  /"
+                                                FZF_FLAG_SELECT_1=0;
+                                        fi;
+                                        FZF_FLAG_INSENSITIVE=1 \
+                                        FZF_FLAG_EXTENDED_EXACT=1 \
+                                        FZF_FLAG_ANSI="$FZF_FS_LS_CLICOLOR" \
+                                        FZF_FLAG_PROMPT="$prompt" \
+                                        FZF_FLAG_COLOR="$FZF_FS_COLORSCHEME" \
+                                        FZF_FLAG_NO_MOUSE="$FZF_FS_NO_MOUSE" \
+                                        FZF_FLAG_REVERSE="$FZF_FS_STATUSBAR_TOP" \
+                                        FZF_FLAG_BLACK="$FZF_FS_BG_BLACK" \
+                                        FZF_FLAG_NO_HSCROLL="$FZF_FS_NO_HSCROLL" \
+                                        FZF_FLAG_INLINE_INFO="$FZF_FS_INLINE_INFO" \
+                                        FZF_FLAG_EXPECT="ctrl-i"
+                                                __fzf_wrapper;
+                                fi
+                        ;;
+                        console)
+                                FZF_FLAG_EXPECT="ctrl-i" \
+                                FZF_FLAG_EXTENDED=1 \
+                                FZF_FLAG_NO_SORT=1 \
+                                FZF_FLAG_PRINT_QUERY=1 \
+                                FZF_FLAG_PROMPT=":" \
+                                FZF_FLAG_QUERY="$2" \
+                                FZF_FLAG_COLOR="$FZF_FS_COLORSCHEME" \
+                                FZF_FLAG_NO_MOUSE="$FZF_FS_NO_MOUSE" \
+                                FZF_FLAG_REVERSE="$FZF_FS_STATUSBAR_TOP" \
+                                FZF_FLAG_BLACK="$FZF_FS_BG_BLACK" \
+                                FZF_FLAG_NO_HSCROLL="$FZF_FS_NO_HSCROLL" \
+                                FZF_FLAG_INLINE_INFO="$FZF_FS_INLINE_INFO" \
+                                        __fzf_wrapper
+                        ;;
+                        esac
+                };
 
-            FzfFsCore__main "$@";
+                function FzfFsCore__init_cwd ()
+                {
+                        cwd[0]="/";
+                        cwd[3]="$FZF_FS_CWD";
 
-            ret="$?";
+                        if [[ "${cwd[3]}" == ".." ]]
+                        then
+                                cwd[3]="${PWD%/*}";
+                        else
+                                if [[ "${cwd[3]:-.}" == \. ]]
+                                then
+                                        cwd[3]="$PWD";
+                                else
+                                        if [[ "${cwd[3]}" == \- ]]
+                                        then
+                                                cwd[3]="$OLDPWD";
+                                        else
+                                                if [[ -d "${cwd[3]}" ]]
+                                                then
+                                                        cwd[3]="${cwd[3]%/}";
+                                                else
+                                                        __fzf_fs_echoE "${source}:Error:79: Not a directory: '${cwd[3]}'" 1>&2;
+                                                        builtin return 79;
+                                                fi;
+                                        fi;
+                                fi;
+                        fi;
 
-            # -- POST.
+                        cwd[3]="${cwd[3]:-${cwd[0]}}";
 
-            builtin return "$ret"
+                        [[ "$PWD" == "${cwd[3]}" ]] || builtin cd "${cwd[3]}"
+                };
+
+                function FzfFsCore__list ()
+                {
+                        case "$1" in
+                        navigator)
+                                LS_CHECKSUM="$checksum" \
+                                LS_COLOR="$FZF_FS_LS_CLICOLOR" \
+                                LS_DIR_NAME="${FZF_FS_CONFIG_DIR}/cache/sessions/${FZF_FS_SESSION}/var/ls" \
+                                LS_FILE_INODE="${cwd[4]}" \
+                                LS_FILE_NAME="." \
+                                LS_FLAG_a="$FZF_FS_LS_HIDDEN" \
+                                LS_FLAG_i="1" \
+                                LS_FLAG_l="1" \
+                                LS_FLAG_r="$FZF_FS_LS_REVERSE" \
+                                LS_HOOK_POST_TEE="1" \
+                                LS_HOOK_PRAE="tail -n +2" \
+                                        __ls_do
+                        ;;
+                        console)
+                                command find -H "${FZF_FS_CONFIG_DIR}/console/." ! -name . |
+                                command sed "s#^${FZF_FS_CONFIG_DIR}/console/./##" |
+                                command sort -u
+                        ;;
+                        esac
+                };
+
+                function FzfFsCore__main ()
+                {
+                        builtin eval "$@"
+                };
+
+                function FzfFsCore__navigator ()
+                {
+                        builtin unset -v key navigator;
+                        builtin typeset key;
+                        builtin typeset -a navigator;
+
+                        FzfFsCore__show_cursor 0;
+
+                        while [[ -n "${cwd[3]}" ]]
+                        do
+                                navigator[0]="$(FzfFsCore__select "navigator" "${cwd[3]}")";
+                                if [[ "${navigator[0]}" == $'\n'* ]]
+                                then
+                                        navigator[0]="${navigator[0]/$'\n'/}";
+                                        navigator[1]="${navigator[0]%% *}";
+                                        if [[ "${navigator[1]}" == "${cwd[4]}" ]]
+                                        then
+                                                builtin continue;
+                                        else
+                                                FzfFsCore__set_file;
+                                                FzfFsCore__enter_file
+                                        fi;
+                                else
+                                        key="${navigator[0]/$'\n'*/}";
+                                        navigator[0]="${navigator[0]/*$'\n'/}";
+                                        if [[ -n "${navigator[0]}" ]]
+                                        then
+                                                navigator[1]="${navigator[0]%% *}";
+                                                [[ "${navigator[1]}" == "${cwd[4]}" ]] || FzfFsCore__set_file;
+                                                FzfFsCore__show_cursor 0;
+                                                if [[ "$FZF_FS_MODE" == "normal" ]]
+                                                then
+                                                        builtin . "${FZF_FS_CONFIG_DIR}/cache/sessions/${FZF_FS_SESSION}/etc/keybindings_normal";
+                                                elif [[ "$FZF_FS_MODE" == "search" ]]
+                                                then
+                                                        builtin . "${FZF_FS_CONFIG_DIR}/cache/sessions/${FZF_FS_SESSION}/etc/keybindings_search";
+                                                fi;
+                                                FzfFsCore__console;
+                                        else
+                                                FZF_FS_MODE=normal;
+                                                FzfFsCore__show_cursor 0;
+                                        fi;
+                                fi;
+                        done
+                };
+
+                function FzfFsCore__prompt ()
+                {
+                        builtin unset -v cols prompt_leng;
+                        builtin typeset -i prompt_leng;
+                        builtin typeset -i cols;
+
+                        cols="${COLUMNS:-$(__spath_get_cols :)}";
+                        __spath_do "prompt" "${1/${HOME}/"~"}";
+                        prompt="  ${USER}@${HOSTNAME}:${prompt} ";
+                        prompt_leng="${#prompt}"
+                };
+
+                function FzfFsCore__select ()
+                {
+                        case "$1" in
+                        navigator)
+                                FzfFsCore__list "navigator" |
+                                FzfFsCore__fzf "navigator" "$2" |
+                                __ls_remove_color;
+                        ;;
+                        console)
+                                FzfFsCore__list "console" |
+                                FzfFsCore__fzf "console" "$2";
+                        ;;
+                        esac
+                };
+
+                function FzfFsCore__set_file ()
+                {
+                        file="${cwd[3]}/$(__ls_find_inode : "${cwd[3]}" "${navigator[1]}")";
+                        file="${file//\/\//\/}";
+                        __ls_get_inode "file_inode" "$file";
+                        file_inode="${file_inode%% *}"
+                };
+
+                function FzfFsCore__show_cursor ()
+                {
+                        [[ "$FZF_FS_SHOW_CURSOR" -eq 0 ]] && {
+                                case "$1" in
+                                0)
+                                        command printf "$cursor_off"
+                                ;;
+                                1)
+                                        command printf "$cursor_on"
+                                ;;
+                                esac
+                        }
+                };
+
+                function FzfFsCore__update_cwd ()
+                {
+                        FzfFsCore__complete_cwd &&
+                        FzfFsCore__checksum &&
+                        FzfFsCore__dump_cwd | command tee "${FZF_FS_CONFIG_DIR}/cache/clients/${FZF_FS_CLIENT}/cwd.client" > "${FZF_FS_CONFIG_DIR}/cache/sessions/${FZF_FS_SESSION}/var/cwd.session"
+                };
+
+                function FzfFsCore__update_env ()
+                {
+                        FzfFsCore__checksum;
+                        FzfFsCore__dump_env | command tee
+                        "${FZF_FS_CONFIG_DIR}/cache/clients/${FZF_FS_CLIENT}/env.client" > "${FZF_FS_CONFIG_DIR}/cache/sessions/${FZF_FS_SESSION}/var/env.session"
+                };
+
+                # -- MAIN.
+
+                builtin unset -v ret;
+                builtin typeset -i ret;
+
+                FzfFsCore__main "$@";
+
+                ret="$?";
+
+                builtin return "$ret"
         };
 
         FzfFsSession ()
         {
-            # -- FUNCTIONS.
+                # -- FUNCTIONS.
 
-            function FzfFsSession__attend_session ()
-            {
-                clients_session[${#clients[@]} - 1]="$FZF_FS_SESSION"
-            };
-
-            function FzfFsSession__create_buffer ()
-            {
-                builtin unset -v i index;
-                builtin typeset i index;
-                index="$((${#buffers[@]} + 1))"
-                buffers+=("${index}-${1:-${index}}");
-                FZF_FS_SESSION="$(<"${FZF_FS_CONFIG_DIR}/daemon/clients/${FZF_FS_CLIENT}/session")"
-                command mkdir -p -m 755 "${FZF_FS_CONFIG_DIR}/sessions/${FZF_FS_SESSION}/var/buffers/${index}";
-                command cp "${FZF_FS_CONFIG_DIR}/sessions/${FZF_FS_SESSION}/var/env.session" "${FZF_FS_CONFIG_DIR}/sessions/${FZF_FS_SESSION}/var/buffers/${index}/env.buffer";
-                command cp "${FZF_FS_CONFIG_DIR}/sessions/${FZF_FS_SESSION}/var/cwd.session" "${FZF_FS_CONFIG_DIR}/sessions/${FZF_FS_SESSION}/var/buffers/${index}/cwd.buffer"
-                FzfFsSession__update_info;
-                command printf '%s\n' "$index" > "${FZF_FS_CONFIG_DIR}/daemon/clients/${FZF_FS_CLIENT}/buffer";
-                builtin return "$index"
-            };
-
-            function FzfFsSession__create_daemon ()
-            {
-                if { builtin . "${FZF_FS_CONFIG_DIR}/daemon/info" && command ps -p "${daemon[0]}" ; } 1> /dev/null 2>&1
-                then
-                    { command printf '%s\n' "${source}: Error 79: Daemon has already been started with pid: '${daemon[0]}'" 1>&2 ; builtin return 79 ; }
-                else
-                    command mkdir -p -m 755 "${FZF_FS_CONFIG_DIR}/daemon/clients";
-                    command chmod +x "${FZF_FS_CONFIG_DIR}/default/lib/fzf-fs-fifo.sh";
-                    FzfFsSession__create_fifo;
-                    command sleep 0.5 &&
-                    command printf '%s\n' "Done" 1>&2;
-                fi;
-            };
-
-            function FzfFsSession__create_fifo ()
-            {
-                command rm "${FZF_FS_CONFIG_DIR}/daemon/"{request,response}.fifo 1> /dev/null 2>&1;
-                command mkfifo "${FZF_FS_CONFIG_DIR}/daemon/"{request,response}.fifo;
-                (exec "${FZF_FS_CONFIG_DIR}/default/lib/fzf-fs-fifo.sh" "$FZF_FS_CONFIG_DIR" &)
-            };
-
-            function FzfFsSession__create_session ()
-            {
-                builtin unset -v i index n;
-                builtin typeset \
-                    i \
-                    index="$(command date --utc +%s)";
-                builtin typeset n="${1:-${index}}";
-
-                sessions[$index]="$n";
-                sessions_status[$index]="open";
-
-                command mkdir -p -m 755 "${FZF_FS_CONFIG_DIR}/cache/sessions/${index}/var/ls";
-                for i in "${FZF_FS_CONFIG_DIR}/default/"{bin,etc}; do
-                    command cp -R "$i" "${FZF_FS_CONFIG_DIR}/cache/sessions/${index}";
-                done;
-
-                > "${FZF_FS_CONFIG_DIR}/cache/sessions/${index}/var/env.session";
-                > "${FZF_FS_CONFIG_DIR}/cache/sessions/${index}/var/cwd.session";
-
-                FzfFsSession__update_info_session;
-
-                builtin . "${FZF_FS_CONFIG_DIR}/cache/sessions/info.sessions";
-
-                builtin return "$((${#sessions_ids[@]} - 1))"
-            };
-
-            function FzfFsSession__dump_sessions ()
-            {
-                builtin unset -v i cwd;
-                builtin typeset i;
-                builtin typeset -a cwd;
-                command printf '%s %s %s %s %s\n-- ----- ---- ------ ---\n' "ID" "Index" "Name" "Status" "CWD";
-                for i in "${!sessions_ids[@]}"; do
-                    command printf '%d %d %s %s %s\n' "$i" "${sessions_ids[$i]}" "${sessions[${sessions_ids[$i]}]}" "${sessions_status[${sessions_ids[$i]}]}" "${cwd[3]:--}";
-                done 2>/dev/null
-            };
-
-            function FzfFsSession__kill_daemon ()
-            {
-                FzfFsSession__san daemon;
-                array daemon;
-
-                if builtin . "${FZF_FS_CONFIG_DIR}/daemon/info"
-                then
-                    if command ps -p "${daemon[0]}" 1> /dev/null
-                    then
-                        command printf '%s' "${source}: Info: Killing daemon with pid: '${daemon[0]}' ... " 1>&2;
-                        command kill "${daemon[0]}" &&
-                        command printf '%s\n' "Done" 1>&2;
-                        command rm "${FZF_FS_CONFIG_DIR}/daemon/"{info,{request,response}.fifo}
-                    else
-                        { command printf '%s\n' "${source}: Error 80: Could not kill stored pid: '${daemon[0]}'" 1>&2 ; builtin return 80 ; }
-                    fi;
-                else
-                    { command printf '%s\n' "${source}: Error 81: Could not find a started daemon" 1>&2 ; builtin return 81 ; }
-                fi
-            };
-
-            function FzfFsSession__main ()
-            {
-                builtin unset -v \
-                    buffers \
-                    clients \
-                    clients_session \
-                    sessions \
-                    sessions_ids \
-                    sessions_status;
-                builtin typeset \
-                    FZF_FS_CONFIG_DIR="${FZF_FS_CONFIG_DIR:-${XDG_CONFIG_HOME:-${HOME}/.config}/fzf-fs.d}";
-                builtin typeset -a \
-                    buffers \
-                    clients \
-                    clients_session \
-                    sessions \
-                    sessions_ids \
-                    sessions_status;
-
-                command mkdir -p -m 755 "${FZF_FS_CONFIG_DIR}/"{cache,user}/sessions;
-
-                builtin . "${FZF_FS_CONFIG_DIR}/user/sessions/info.sessions" 1> /dev/null 2>&1;
-                builtin . "${FZF_FS_CONFIG_DIR}/cache/sessions/info.sessions" 1> /dev/null 2>&1;
-                builtin eval "$@"
-            };
-
-            function FzfFsSession__parse_session ()
-            {
-                builtin unset -v i id index name;
-                builtin typeset i id index name;
-
-                if [[ -z "$1" ]]
-                then
-                    FzfFsSession__create_session
-                else
-                    IFS=":" builtin read -r id index name <<< "$1";
-                    if [[ -n "$id" ]]
-                    then
-                        if [[ -n "${sessions_ids[$id]}" ]]
-                        then
-                            if [[ "${sessions_status[${sessions_ids[$id]}]}" == "open" ]]
-                            then
-                                builtin return "$id"
-                            else
-                                FzfFsSession__restore_session "$id"
-                            fi
-                        else
-                            { command printf '%s\n' "${source}:Error:255: Could not open session with id '${id}'" 1>&2 ; builtin return 255 ; }
-                        fi
-                    elif [[ -n "$index" ]]
-                    then
-                        if [[ -n "${sessions[$index]}" ]]
-                        then
-                            if [[ "${sessions_status[$index]}" == "open" ]]
-                            then
-                                for i in "${!sessions_ids[@]}"
-                                do
-                                    [[ "${sessions_ids[$i]}" == "$index" ]] && builtin return "$i"
-                                done;
-                            else
-                                for i in "${!sessions_ids[@]}"
-                                do
-                                    [[ "${sessions_ids[$i]}" == "$index" ]] && {
-                                        FzfFsSession__restore_session "$i";
-                                        builtin return "$?"
-                                    }
-                                done;
-                            fi;
-                            builtin return 255
-                        else
-                            { command printf '%s\n' "${source}:Error:255: Could not open session with index '${index}'" 1>&2 ; builtin return 255 ; }
-                        fi
-                    elif [[ -n "$name" ]]
-                    then
-                        for index in "${!sessions[@]}"
-                        do
-                            [[ "${sessions[$index]}" == "$name" ]] && {
-                                if [[ "${sessions_status[$index]}" == "open" ]]
-                                then
-                                    for i in "${!sessions_ids[@]}"
-                                    do
-                                        [[ "${sessions_ids[$i]}" == "$index" ]] && builtin return "$i"
-                                    done
-                                else
-                                    for i in "${!sessions_ids[@]}"
-                                    do
-                                        [[ "${sessions_ids[$i]}" == "$index" ]] && {
-                                            FzfFsSession__restore_session;
-                                            builtin return "$?"
-                                        }
-                                    done
-                                fi;
-                                builtin return 255
-                            }
-                        done;
-                        FzfFsSession__create_session "$name"
-                    else
-                        FzfFsSession__create_session
-                    fi
-                fi
-            };
-
-            function FzfFsSession__register_client ()
-            {
-                command mkdir -p -m 755 "${FZF_FS_CONFIG_DIR}/cache/clients/${FZF_FS_CLIENT}";
-                clients+=("$FZF_FS_CLIENT");
-                FzfFsSession__attend_session;
-                FzfFsSession__update_info_client
-            };
-
-            function FzfFsSession__register_stored_sessions ()
-            {
-                builtin unset -v i name;
-                builtin typeset i name;
-                [[ -d "${FZF_FS_CONFIG_DIR}/user/sessions" ]] && {
-                    for i in "${FZF_FS_CONFIG_DIR}/user/sessions"/*; do
-                        name="$(<"${i}/var/info.session")"
-                        i="${i##*/}";
-                        [[ -n "$i" ]] && sessions[${i}]="$name";
-                    done;
+                function FzfFsSession__attend_session ()
+                {
+                        clients_session[${#clients[@]} - 1]="$FZF_FS_SESSION"
                 };
-                FzfFsSession__update_info;
-            };
 
-            function FzfFsSession__request ()
-            {
+                function FzfFsSession__create_session ()
+                {
+                        builtin unset -v i index n;
+                        builtin typeset \
+                                i \
+                                index="$(command date --utc +%s)";
+                        builtin typeset n="${1:-${index}}";
+
+                        sessions[$index]="$n";
+                        sessions_status[$index]="open";
+
+                        command mkdir -p -m 755 "${FZF_FS_CONFIG_DIR}/cache/sessions/${index}/var/ls";
+
+                        for i in "${FZF_FS_CONFIG_DIR}/default/"{bin,etc}
+                        do
+                                command cp -R "$i" "${FZF_FS_CONFIG_DIR}/cache/sessions/${index}";
+                        done;
+
+                        > "${FZF_FS_CONFIG_DIR}/cache/sessions/${index}/var/env.session";
+                        > "${FZF_FS_CONFIG_DIR}/cache/sessions/${index}/var/cwd.session";
+
+                        FzfFsSession__update_info_session;
+
+                        builtin . "${FZF_FS_CONFIG_DIR}/cache/sessions/info.sessions";
+
+                        builtin return "$((${#sessions_ids[@]} - 1))"
+                };
+
+                function FzfFsSession__dump_sessions ()
+                {
+                        builtin unset -v i cwd;
+                        builtin typeset i;
+                        builtin typeset -a cwd;
+
+                        command printf '%s %s %s %s %s\n-- ----- ---- ------ ---\n' "ID" "Index" "Name" "Status" "CWD";
+
+                        for i in "${!sessions_ids[@]}"
+                        do
+                                command printf '%d %d %s %s %s\n' "$i" "${sessions_ids[$i]}" "${sessions[${sessions_ids[$i]}]}" "${sessions_status[${sessions_ids[$i]}]}" "${cwd[3]:--}";
+                        done 2>/dev/null
+                };
+
+                function FzfFsSession__main ()
+                {
+                        builtin unset -v \
+                                buffers \
+                                clients \
+                                clients_session \
+                                sessions \
+                                sessions_ids \
+                                sessions_status;
+                        builtin typeset \
+                                FZF_FS_CONFIG_DIR="${FZF_FS_CONFIG_DIR:-${XDG_CONFIG_HOME:-${HOME}/.config}/fzf-fs.d}";
+                        builtin typeset -a \
+                                buffers \
+                                clients \
+                                clients_session \
+                                sessions \
+                                sessions_ids \
+                                sessions_status;
+
+                        command mkdir -p -m 755 "${FZF_FS_CONFIG_DIR}/"{cache,user}/sessions;
+
+                        builtin . "${FZF_FS_CONFIG_DIR}/user/sessions/info.sessions" 1> /dev/null 2>&1;
+                        builtin . "${FZF_FS_CONFIG_DIR}/cache/sessions/info.sessions" 1> /dev/null 2>&1;
+                        builtin eval "$@"
+                };
+
+                function FzfFsSession__parse_session ()
+                {
+                        builtin unset -v i id index name;
+                        builtin typeset i id index name;
+
+                        if [[ -z "$1" ]]
+                        then
+                                FzfFsSession__create_session
+                        else
+                                IFS=":" builtin read -r id index name <<< "$1";
+                                if [[ -n "$id" ]]
+                                then
+                                        if [[ -n "${sessions_ids[$id]}" ]]
+                                        then
+                                                if [[ "${sessions_status[${sessions_ids[$id]}]}" == "open" ]]
+                                                then
+                                                        builtin return "$id"
+                                                else
+                                                        FzfFsSession__restore_session "$id"
+                                                fi
+                                        else
+                                                { command printf '%s\n' "${source}:Error:255: Could not open session with id '${id}'" 1>&2 ; builtin return 255 ; }
+                                        fi
+                                elif [[ -n "$index" ]]
+                                then
+                                        if [[ -n "${sessions[$index]}" ]]
+                                        then
+                                                if [[ "${sessions_status[$index]}" == "open" ]]
+                                                then
+                                                        for i in "${!sessions_ids[@]}"
+                                                        do
+                                                                [[ "${sessions_ids[$i]}" == "$index" ]] && builtin return "$i"
+                                                        done;
+                                                else
+                                                        for i in "${!sessions_ids[@]}"
+                                                        do
+                                                                [[ "${sessions_ids[$i]}" == "$index" ]] && {
+                                                                        FzfFsSession__restore_session "$i";
+                                                                        builtin return "$?"
+                                                                }
+                                                        done;
+                                                fi;
+                                                builtin return 255
+                                        else
+                                                { command printf '%s\n' "${source}:Error:255: Could not open session with index '${index}'" 1>&2 ; builtin return 255 ; }
+                                        fi
+                                elif [[ -n "$name" ]]
+                                then
+                                        for index in "${!sessions[@]}"
+                                        do
+                                                [[ "${sessions[$index]}" == "$name" ]] && {
+                                                        if [[ "${sessions_status[$index]}" == "open" ]]
+                                                        then
+                                                                for i in "${!sessions_ids[@]}"
+                                                                do
+                                                                        [[ "${sessions_ids[$i]}" == "$index" ]] && builtin return "$i"
+                                                                done
+                                                        else
+                                                                for i in "${!sessions_ids[@]}"
+                                                                do
+                                                                        [[ "${sessions_ids[$i]}" == "$index" ]] && {
+                                                                                FzfFsSession__restore_session;
+                                                                                builtin return "$?"
+                                                                        }
+                                                                done
+                                                        fi;
+                                                        builtin return 255
+                                                }
+                                        done;
+                                        FzfFsSession__create_session "$name"
+                                else
+                                        FzfFsSession__create_session
+                                fi
+                        fi
+                };
+
+                function FzfFsSession__register_client ()
+                {
+                        command mkdir -p -m 755 "${FZF_FS_CONFIG_DIR}/cache/clients/${FZF_FS_CLIENT}";
+                        clients+=("$FZF_FS_CLIENT");
+                        FzfFsSession__attend_session;
+                        FzfFsSession__update_info_client
+                };
+
+                function FzfFsSession__rename_session ()
+                {
+                        builtin unset -v id index n;
+                        builtin typeset -i \
+                                id="$1" \
+                                index="${sessions_ids[$1]}";
+                        builtin typeset n="$2";
+
+                        sessions[$index]="${n:-${index}}";
+                        FzfFsSession__update_info_session
+                };
+
+                function FzfFsSession__restore_session ()
+                {
+                        builtin unset -v id index;
+                        builtin typeset -i \
+                                id="$1" \
+                                index="${sessions_ids[$1]}";
+
+                        sessions_status[$index]="open";
+
+                        command mv "${FZF_FS_CONFIG_DIR}/user/sessions/${index}" "${FZF_FS_CONFIG_DIR}/cache/sessions/";
+
+                        FzfFsSession__update_info_session;
+
+                        builtin return "$id"
+                };
+
+                function FzfFsSession__store_session ()
+                {
+                        builtin unset -v id index indexn n;
+                        builtin typeset -i \
+                                id="$1" \
+                                index="${sessions_ids[$1]}" \
+                                indexn="$(command date --utc +%s)";
+                        builtin typeset n="$2";
+
+                        sessions[$indexn]="${n:-${indexn}}";
+                        sessions_status[$indexn]="closed";
+
+                        command cp -R "${FZF_FS_CONFIG_DIR}/cache/sessions/${index}/" "${FZF_FS_CONFIG_DIR}/user/sessions/${indexn}/";
+
+                        FzfFsSession__update_info_session
+                };
+
+                function FzfFsSession__update_info_client ()
+                {
+                        builtin unset -v i;
+                        builtin typeset -i i;
+
+                        for i in "${!clients[@]}"
+                        do
+                                command printf '%s\n' "clients[$i]=\"${clients[$i]}\""
+                        done;
+
+                        for i in "${!clients_session[@]}"
+                        do
+                                command printf '%s\n' "clients_session[$i]=\"${clients_session[$i]}\""
+                        done;
+                } > "${FZF_FS_CONFIG_DIR}/cache/clients/info.clients";
+
+                function FzfFsSession__update_info_session ()
+                {
+                        builtin unset -v i n;
+                        builtin typeset -i i n=0;
+
+                        for i in "${!buffers[@]}"
+                        do
+                                command printf '%s\n' "buffers[$i]=\"${buffers[$i]}\""
+                        done;
+
+                        for i in "${!clients[@]}"
+                        do
+                                command printf '%s\n' "clients[$i]=\"${clients[$i]}\""
+                        done;
+
+                        > "${FZF_FS_CONFIG_DIR}/user/sessions/info.sessions" 1> /dev/null 2>&1;
+                        for i in "${!sessions[@]}"
+                        do
+                                [[ "${sessions_status[$i]}" == closed ]] && {
+                                        command printf '%s\n' "sessions[$i]=\"${sessions[$i]}\"" "sessions_status[$i]=\"${sessions_status[$i]}\"" >> "${FZF_FS_CONFIG_DIR}/user/sessions/info.sessions"
+                                };
+                                command printf '%s\n' "sessions[$i]=\"${sessions[$i]}\"" "sessions_status[$i]=\"${sessions_status[$i]}\"" "sessions_ids[$n]=\"${i}\"";
+                                ((n++))
+                        done;
+                } > "${FZF_FS_CONFIG_DIR}/cache/sessions/info.sessions";
+
+                # -- MAIN.
+
                 builtin unset -v ret;
                 builtin typeset -i ret;
-                command rm "${FZF_FS_CONFIG_DIR}/daemon/clients/${FZF_FS_CLIENT}/response" > /dev/null 2>&1;
-                IFS=" " command printf '%s\n' "${FZF_FS_CLIENT:+${FZF_FS_CLIENT} }${*}" 1>&8;
-                until [[ -f "${FZF_FS_CONFIG_DIR}/daemon/clients/${FZF_FS_CLIENT}/response" ]]; do
-                    builtin :;
-                done;
-                ret="$(<"${FZF_FS_CONFIG_DIR}/daemon/clients/${FZF_FS_CLIENT}/response")";
+
+                FzfFsSession__main "$@";
+
+                ret="$?";
+
+                builtin unset -f FzfFsSession__main;
+
                 builtin return "$ret"
-            };
-
-            function FzfFsSession__rename_session ()
-            {
-                builtin unset -v id index n;
-                builtin typeset -i \
-                    id="$1" \
-                    index="${sessions_ids[$1]}";
-                builtin typeset n="$2";
-
-                sessions[$index]="${n:-${index}}";
-
-                FzfFsSession__update_info_session
-            };
-
-            function FzfFsSession__restore_session ()
-            {
-                builtin unset -v id index;
-                builtin typeset -i \
-                    id="$1" \
-                    index="${sessions_ids[$1]}";
-
-                sessions_status[$index]="open";
-
-                command mv "${FZF_FS_CONFIG_DIR}/user/sessions/${index}" "${FZF_FS_CONFIG_DIR}/cache/sessions/";
-
-                FzfFsSession__update_info_session;
-
-                builtin return "$id"
-            };
-
-            function FzfFsSession__return_status ()
-            {
-                builtin unset -v i;
-                builtin typeset -i i="$1";
-                command printf '%s\n' "$i" > "${FZF_FS_CONFIG_DIR}/daemon/clients/${FZF_FS_CLIENT}/response"
-            };
-
-            function FzfFsSession__store_session ()
-            {
-                builtin unset -v id index indexn n;
-                builtin typeset -i \
-                    id="$1" \
-                    index="${sessions_ids[$1]}" \
-                    indexn="$(command date --utc +%s)";
-                builtin typeset n="$2";
-
-                sessions[$indexn]="${n:-${indexn}}";
-                sessions_status[$indexn]="closed";
-
-                command cp -R "${FZF_FS_CONFIG_DIR}/cache/sessions/${index}/" "${FZF_FS_CONFIG_DIR}/user/sessions/${indexn}/";
-
-                FzfFsSession__update_info_session
-            };
-
-            function FzfFsSession__update_info_client ()
-            {
-                builtin unset -v i;
-                builtin typeset -i i;
-
-                for i in "${!clients[@]}"; do
-                    command printf '%s\n' "clients[$i]=\"${clients[$i]}\""
-                done;
-
-                for i in "${!clients_session[@]}"; do
-                    command printf '%s\n' "clients_session[$i]=\"${clients_session[$i]}\""
-                done;
-            } > "${FZF_FS_CONFIG_DIR}/cache/clients/info.clients";
-
-            function FzfFsSession__update_info_session ()
-            {
-                builtin unset -v i n;
-                builtin typeset -i i n=0;
-
-                for i in "${!buffers[@]}"; do
-                    command printf '%s\n' "buffers[$i]=\"${buffers[$i]}\""
-                done;
-
-                for i in "${!clients[@]}"; do
-                    command printf '%s\n' "clients[$i]=\"${clients[$i]}\""
-                done;
-
-                > "${FZF_FS_CONFIG_DIR}/user/sessions/info.sessions" 1> /dev/null 2>&1;
-                for i in "${!sessions[@]}"; do
-                    [[ "${sessions_status[$i]}" == closed ]] && {
-                        command printf '%s\n' "sessions[$i]=\"${sessions[$i]}\"" "sessions_status[$i]=\"${sessions_status[$i]}\"" >> "${FZF_FS_CONFIG_DIR}/user/sessions/info.sessions"
-                    };
-                    command printf '%s\n' "sessions[$i]=\"${sessions[$i]}\"" "sessions_status[$i]=\"${sessions_status[$i]}\"" "sessions_ids[$n]=\"${i}\"";
-                    ((n++))
-                done;
-            } > "${FZF_FS_CONFIG_DIR}/cache/sessions/info.sessions";
-
-            function FzfFsSession__update_cwd ()
-            {
-                FZF_FS_SESSION="$(<"${FZF_FS_CONFIG_DIR}/daemon/clients/${FZF_FS_CLIENT}/session")";
-                FZF_FS_BUFFER="$(<"${FZF_FS_CONFIG_DIR}/daemon/clients/${FZF_FS_CLIENT}/buffer")";
-                command cp -f "${FZF_FS_CONFIG_DIR}/sessions/${FZF_FS_SESSION}/var/buffers/${FZF_FS_BUFFER}/cwd.buffer" "${FZF_FS_CONFIG_DIR}/sessions/${FZF_FS_SESSION}/var/cwd.session";
-                builtin return 0
-            };
-
-            function FzfFsSession__update_env ()
-            {
-                FZF_FS_SESSION="$(<"${FZF_FS_CONFIG_DIR}/daemon/clients/${FZF_FS_CLIENT}/session")";
-                FZF_FS_BUFFER="$(<"${FZF_FS_CONFIG_DIR}/daemon/clients/${FZF_FS_CLIENT}/buffer")";
-                command cp -f "${FZF_FS_CONFIG_DIR}/sessions/${FZF_FS_SESSION}/var/buffers/${FZF_FS_BUFFER}/env.buffer" "${FZF_FS_CONFIG_DIR}/sessions/${FZF_FS_SESSION}/var/env.session";
-                builtin return 0
-            };
-
-            # -- UTILS.
-
-            function FzfFsSession__san ()
-            {
-                case "$1" in
-                    -[fn])
-                        IFS=" " builtin unset ${*}
-                    ;;
-                    *)
-                        IFS=" " builtin unset -v ${*}
-                esac
-            };
-
-            # -- SOURCE.
-
-            # -- MAIN.
-
-            FzfFsSession__san ret;
-            int ret;
-
-            FzfFsSession__main "$@";
-
-            ret="$?";
-
-            # -- POST.
-
-            FzfFsSession__san -f \
-                FzfFsSession__create_daemon \
-                FzfFsSession__create_fifo \
-                FzfFsSession__create_session \
-                FzfFsSession__kill_daemon \
-                FzfFsSession__main \
-                FzfFsSession__san;
-
-            builtin return "$ret"
         };
 
         FzfFsHelp ()
         {
-            # -- FUNCTIONS.
+                # -- FUNCTIONS.
 
-            function FzfFsHelp__help ()
-            {
-                builtin unset -v help;
+                function FzfFsHelp__help ()
                 {
-                    builtin typeset help="$(</dev/fd/0)"
-                }  <<-'HELP'
+                        builtin unset -v help;
+
+                        {
+                                builtin typeset help="$(</dev/fd/0)"
+                        }  <<-'HELP'
 Usage
-    [ . ] fzf-fs [ -h | -i | -v | <directory> ]
+        [ . ] fzf-fs [ -h | -i | -v | <directory> ]
 
 Options
-    -h, --help      Show this instruction
-    -i, --init      Initialize configuration directory
-    -v, --version   Print version
+        -h, --help      Show this instruction
+        -i, --init      Initialize configuration directory
+        -v, --version   Print version
 
 Environment variables
-    FZF_FS_CONFIG_DIR
-            ${XDG_CONFIG_HOME:-${HOME}/.config}/fzf-fs.d
+        FZF_FS_CONFIG_DIR
+                        ${XDG_CONFIG_HOME:-${HOME}/.config}/fzf-fs.d
 HELP
 
-                command printf '%s\n' "$help"
-            }
+                        command printf '%s\n' "$help"
+                }
 
-            function FzfFsHelp__main ()
-            {
-                FzfFsHelp__help
-            }
+                function FzfFsHelp__main ()
+                {
+                        FzfFsHelp__help
+                }
 
-            # -- UTILS.
+                # -- MAIN.
 
-            function FzfFsHelp__san ()
-            {
-                case "$1" in
-                    -[fn])
-                        IFS=" " builtin unset ${*}
-                    ;;
-                    *)
-                        IFS=" " builtin unset -v ${*}
-                esac
-            };
+                builtin unset -v ret;
+                builtin typeset -i ret;
 
-            # -- SOURCE.
+                FzfFsHelp__main "$@";
 
-            # -- MAIN.
+                ret="$?";
 
-            FzfFsHelp__san ret;
-            int ret;
+                builtin unset -f \
+                        FzfFsHelp__help \
+                        FzfFsHelp__main;
 
-            FzfFsHelp__main "$@";
-
-            ret="$?";
-
-            # -- POST.
-
-            FzfFsHelp__san -f \
-                FzfFsHelp__help \
-                FzfFsHelp__main \
-                FzfFsHelp__san;
-
-            builtin return "$ret"
+                builtin return "$ret"
         };
 
         FzfFsPrepareBash ()
         {
-            # -- FUNCTIONS.
+                # -- FUNCTIONS.
 
-            function __fzf_fs_clean_sh ()
-            {
-                [[ "$FZF_FS_GLOBINORE_OLD" == FZF_FS_GLOBINORE_OLD ]] || \
-                    builtin typeset -x GLOBIGNORE="$FZF_FS_GLOBINORE_OLD";
+                function __fzf_fs_clean_sh ()
+                {
+                        [[ "$FZF_FS_GLOBINORE_OLD" == FZF_FS_GLOBINORE_OLD ]] || \
+                                builtin typeset -x GLOBIGNORE="$FZF_FS_GLOBINORE_OLD";
 
-                builtin unset -v o;
-                builtin typeset o;
-                for o in "${FZF_FS_BASH_OPTS_OLD[@]}";
-                do
-                    builtin $o;
-                done
-            };
+                        builtin unset -v o;
+                        builtin typeset o;
+                        for o in "${FZF_FS_BASH_OPTS_OLD[@]}";
+                        do
+                                builtin $o;
+                        done
+                };
 
-            function __fzf_fs_echo ()
-            {
-                IFS=" " builtin printf '%b\n' "$*"
-            };
+                function __fzf_fs_echo ()
+                {
+                        IFS=" " builtin printf '%b\n' "$*"
+                };
 
-            function __fzf_fs_echoE ()
-            {
-                IFS=" " builtin printf '%s\n' "$*"
-            };
+                function __fzf_fs_echoE ()
+                {
+                        IFS=" " builtin printf '%s\n' "$*"
+                };
 
-            function __fzf_fs_echon ()
-            {
-                IFS=" " builtin printf '%s' "$*"
-            };
+                function __fzf_fs_echon ()
+                {
+                        IFS=" " builtin printf '%s' "$*"
+                };
 
-            function FzfFsPrepareBash__main ()
-            {
-                builtin unset -v \
-                    FZF_FS_BASH_OPTS_OLD \
-                    FZF_FS_GLOBINORE_OLD \
-                    REPLY;
+                function FzfFsPrepareBash__main ()
+                {
+                        builtin unset -v \
+                                FZF_FS_BASH_OPTS_OLD \
+                                FZF_FS_GLOBINORE_OLD \
+                                REPLY;
+                        builtin typeset -g FZF_FS_GLOBINORE_OLD;
 
-                builtin typeset -g FZF_FS_GLOBINORE_OLD;
-                if [[ ${GLOBIGNORE+x} == x ]]
-                then
-                    FZF_FS_GLOBINORE_OLD="$GLOBIGNORE";
-                else
-                    FZF_FS_GLOBINORE_OLD=FZF_FS_GLOBINORE_OLD;
-                fi
-                builtin unset -v GLOBIGNORE;
+                        if [[ ${GLOBIGNORE+x} == x ]]
+                        then
+                                FZF_FS_GLOBINORE_OLD="$GLOBIGNORE";
+                        else
+                                FZF_FS_GLOBINORE_OLD=FZF_FS_GLOBINORE_OLD;
+                        fi
+                        builtin unset -v GLOBIGNORE;
 
-                builtin typeset -ga FZF_FS_BASH_OPTS_OLD;
-                builtin typeset REPLY;
-                while builtin read -r; do
-                    FZF_FS_BASH_OPTS_OLD+=("$REPLY");
-                done < <(builtin shopt -p);
-                builtin shopt -u dotglob;
-                builtin shopt -s nullglob
-            };
+                        builtin typeset -ga FZF_FS_BASH_OPTS_OLD;
+                        builtin typeset REPLY;
+                        while builtin read -r
+                        do
+                                FZF_FS_BASH_OPTS_OLD+=("$REPLY");
+                        done < <(builtin shopt -p);
+                        builtin shopt -u dotglob;
+                        builtin shopt -s nullglob
+                };
 
-            function __fzf_fs_printfq ()
-            {
-                IFS=" " builtin printf "%q\n" "$*"
-            };
+                function __fzf_fs_printfq ()
+                {
+                        IFS=" " builtin printf "%q\n" "$*"
+                };
 
-            # -- UTILS.
+                # -- MAIN.
 
-            function FzfFsPrepareBash__san ()
-            {
-                case "$1" in
-                    -[fn])
-                        IFS=" " builtin unset ${*}
-                    ;;
-                    *)
-                        IFS=" " builtin unset -v ${*}
-                esac
-            };
+                builtin unset -v ret;
+                builtin typeset -i ret;
 
-            # -- SOURCE.
+                FzfFsPrepareBash__main "$@";
 
-            # -- MAIN.
+                ret="$?";
 
-            FzfFsPrepareBash__san ret;
-            int ret;
+                builtin unset -f FzfFsPrepareBash__main;
 
-            FzfFsPrepareBash__main "$@";
-
-            ret="$?";
-
-            # -- POST.
-
-            FzfFsPrepareBash_san -f \
-                FzfFsPrepareBash__main \
-                FzfFsPrepareBash__san;
-
-            builtin return "$ret"
+                builtin return "$ret"
         };
 
         FzfFsPrepareMksh ()
         {
-            # -- FUNCTIONS.
+                # -- FUNCTIONS.
 
-            function __fzf_fs_clean_sh ()
-            {
-                builtin :
-            };
+                function __fzf_fs_clean_sh ()
+                {
+                        builtin :
+                };
 
-            function __fzf_fs_echo ()
-            {
-                IFS=" " builtin print -- "$*"
-            };
+                function __fzf_fs_echo ()
+                {
+                        IFS=" " builtin print -- "$*"
+                };
 
-            function __fzf_fs_echoE ()
-            {
-                IFS=" " builtin print -r -- "$*"
-            };
+                function __fzf_fs_echoE ()
+                {
+                        IFS=" " builtin print -r -- "$*"
+                };
 
-            function __fzf_fs_echon ()
-            {
-                IFS=" " builtin print -nr -- "$*"
-            };
+                function __fzf_fs_echon ()
+                {
+                        IFS=" " builtin print -nr -- "$*"
+                };
 
-            function FzfFsPrepareMksh__main ()
-            {
-                builtin :
-            };
+                function FzfFsPrepareMksh__main ()
+                {
+                        builtin :
+                };
 
-            function __fzf_fs_printfq ()
-            {
-                builtin unset -v s;
-                IFS=" " builtin typeset s="$*";
-                IFS=" " builtin print -r -- "${s@Q}"
-            }
+                function __fzf_fs_printfq ()
+                {
+                        builtin unset -v s;
+                        IFS=" " builtin typeset s="$*";
+                        IFS=" " builtin print -r -- "${s@Q}"
+                }
 
-            # -- UTILS.
+                # -- MAIN.
 
-            function FzfFsPrepareMksh__san ()
-            {
-                case "$1" in
-                    -[fn])
-                        IFS=" " builtin unset ${*}
-                    ;;
-                    *)
-                        IFS=" " builtin unset -v ${*}
-                esac
-            };
+                builtin unset -v ret;
+                builtin typeset -i ret;
 
-            # -- SOURCE.
+                FzfFsPrepareMksh__main "$@";
 
-            # -- MAIN.
+                ret="$?";
 
-            FzfFsPrepareMksh__san ret;
-            int ret;
+                builtin unset -f FzfFsPrepareMksh__main;
 
-            FzfFsPrepareMksh__main "$@";
-
-            ret="$?";
-
-            # -- POST.
-
-            FzfFsPrepareMksh__san -f \
-                FzfFsPrepareMksh__main \
-                FzfFsPrepareMksh__san;
-
-            builtin return "$ret"
+                builtin return "$ret"
         };
 
         FzfFsPrepareZsh ()
         {
-            # -- FUNCTIONS.
+                # -- FUNCTIONS.
 
-            function __fzf_fs_clean_sh ()
-            {
-                builtin setopt +o shwordsplit;
-                builtin setopt +o NULL_GLOB;
-                builtin unset -v o;
-                builtin typeset o;
-                for o in "${FZF_FS_ZSH_OPTS_OLD[@]}";
-                do
-                    builtin setopt "$o";
-                done
-            };
+                function __fzf_fs_clean_sh ()
+                {
+                        builtin setopt +o shwordsplit;
+                        builtin setopt +o NULL_GLOB;
+                        builtin unset -v o;
+                        builtin typeset o;
+                        for o in "${FZF_FS_ZSH_OPTS_OLD[@]}";
+                        do
+                                builtin setopt "$o";
+                        done
+                };
 
-            function __fzf_fs_echo ()
-            {
-                IFS=" " builtin printf '%b\n' "$*"
-            };
+                function __fzf_fs_echo ()
+                {
+                        IFS=" " builtin printf '%b\n' "$*"
+                };
 
-            function __fzf_fs_echoE ()
-            {
-                IFS=" " builtin printf '%s\n' "$*"
-            };
+                function __fzf_fs_echoE ()
+                {
+                        IFS=" " builtin printf '%s\n' "$*"
+                };
 
-            function __fzf_fs_echon ()
-            {
-                IFS=" " builtin printf '%s' "$*"
-            };
+                function __fzf_fs_echon ()
+                {
+                        IFS=" " builtin printf '%s' "$*"
+                };
 
-            function FzfFsPrepareZsh__main ()
-            {
-                #builtin emulate ksh
-                builtin unset -v FZF_FS_ZSH_OPTS_OLD;
-                builtin set -A FZF_FS_ZSH_OPTS_OLD $(builtin setopt);
-                builtin setopt shwordsplit;
-                builtin setopt NULL_GLOB;
-                builtin setopt +o dotglob;
-            };
+                function FzfFsPrepareZsh__main ()
+                {
+                        #builtin emulate ksh
+                        builtin unset -v FZF_FS_ZSH_OPTS_OLD;
+                        builtin set -A FZF_FS_ZSH_OPTS_OLD $(builtin setopt);
+                        builtin setopt shwordsplit;
+                        builtin setopt NULL_GLOB;
+                        builtin setopt +o dotglob;
+                };
 
-            function __fzf_fs_printfq ()
-            {
-                IFS=" " builtin printf "%q\n" "$*"
-            }
+                function __fzf_fs_printfq ()
+                {
+                        IFS=" " builtin printf "%q\n" "$*"
+                }
 
-            # -- UTILS.
+                # -- MAIN.
 
-            function FzfFsPrepareZsh__san ()
-            {
-                case "$1" in
-                    -[fn])
-                        IFS=" " builtin unset ${*}
-                    ;;
-                    *)
-                        IFS=" " builtin unset -v ${*}
-                esac
-            };
+                builtin unset -v ret;
+                builtin typeset -i ret;
 
-            # -- SOURCE.
+                FzfFsPrepareZsh__main "$@";
 
-            # -- MAIN.
+                ret="$?";
 
-            FzfFsPrepareZsh__san ret;
-            int ret;
+                builtin unset -f FzfFsPrepareZsh__main;
 
-            FzfFsPrepareZsh__main "$@";
-
-            ret="$?";
-
-            # -- POST.
-
-            FzfFsPrepareZsh__san -f \
-                FzfFsPrepareZsh__main \
-                FzfFsPrepareZsh__san;
-
-            builtin return "$ret"
+                builtin return "$ret"
         };
 
         FzfFsVersion ()
         {
-            # -- FUNCTIONS.
+                # -- FUNCTIONS.
 
-            function FzfFsVersion__main ()
-            {
-                FzfFsVersion__version
-            };
+                function FzfFsVersion__main ()
+                {
+                        FzfFsVersion__version
+                };
 
-            function FzfFsVersion__version ()
-            {
-                builtin unset -v version;
-                builtin typeset version=v0.2.2;
+                function FzfFsVersion__version ()
+                {
+                        builtin unset -v version;
+                        builtin typeset version=v0.2.2;
 
-                if [[ -n "$KSH_VERSION" ]]; then
-                    command printf '%s\n' "$version";
-                else
-                    builtin unset -v md5sum;
-                    builtin typeset md5sum="$(command md5sum "$source")";
-                    command printf '%s\n' "${version} (${md5sum%  *})";
-                fi
-            };
+                        if [[ -n "$KSH_VERSION" ]]
+                        then
+                                command printf '%s\n' "$version";
+                        else
+                                builtin unset -v md5sum;
+                                builtin typeset md5sum="$(command md5sum "$source")";
+                                command printf '%s\n' "${version} (${md5sum%  *})";
+                        fi
+                };
 
-            # -- UTILS.
+                # -- MAIN.
 
-            function FzfFsVersion__san ()
-            {
-                case "$1" in
-                    -[fn])
-                        IFS=" " builtin unset ${*}
-                    ;;
-                    *)
-                        IFS=" " builtin unset -v ${*}
-                esac
-            };
+                builtin unset -v ret;
+                builtin typeset -i ret;
 
-            # -- SOURCE.
+                FzfFsVersion__main "$@";
 
-            # -- MAIN.
+                ret="$?";
 
-            FzfFsVersion__san ret;
-            int ret;
+                builtin unset -f \
+                        FzfFsVersion__main \
+                        FzfFsVersion__version;
 
-            FzfFsVersion__main "$@";
-
-            ret="$?";
-
-            # -- POST.
-
-            FzfFsVersion__san -f \
-                FzfFsVersion__main \
-                FzfFsVersion__san \
-                FzfFsVersion__version;
-
-            builtin return "$ret"
+                builtin return "$ret"
         };
 
         command printf '%s\n' "Creating ${FZF_FS_CONFIG_DIR}/default/lib/ ... " 1>&2;
 
         builtin unset -v m s;
         builtin typeset m s;
-        while IFS='|' builtin read -r m s; do
-            command printf '  - %s' "${s}.sh ... " 1>&2;
-            command printf '%s\n' "#!/usr/bin/env bash" > "${FZF_FS_CONFIG_DIR}/default/lib/${s}.sh";
-            builtin typeset -f "$m" >> "${FZF_FS_CONFIG_DIR}/default/lib/${s}.sh";
-            command printf '%s\n' "Done" 1>&2;
+        while IFS='|' builtin read -r m s
+        do
+                command printf '  - %s' "${s}.sh ... " 1>&2;
+                command printf '%s\n' "#!/usr/bin/env bash" > "${FZF_FS_CONFIG_DIR}/default/lib/${s}.sh";
+                builtin typeset -f "$m" >> "${FZF_FS_CONFIG_DIR}/default/lib/${s}.sh";
+                command printf '%s\n' "Done" 1>&2;
         done  <<-MODULES
 FzfFsCore|core
 FzfFsSession|session
@@ -2061,80 +1899,43 @@ FzfFsPrepareZsh|prepare_zsh
 FzfFsVersion|version
 MODULES
 
-        FzfFsInit__san -f \
-            FzfFsCore \
-            FzfFsSession \
-            FzfFsHelp \
-            FzfFsPrepareBash \
-            FzfFsPrepareMksh \
-            FzfFsPrepareZsh \
-            FzfFsVersion
-    };
+        builtin unset -f \
+                FzfFsCore \
+                FzfFsSession \
+                FzfFsHelp \
+                FzfFsPrepareBash \
+                FzfFsPrepareMksh \
+                FzfFsPrepareZsh \
+                FzfFsVersion
+};
 
-    function FzfFsInit__init_lib_fifo ()
-    {
-        command printf '%s' "Creating ${FZF_FS_CONFIG_DIR}/default/lib/fzf-fs-fifo.sh ... " 1>&2;
-
-        builtin unset -v fifo_default;
-        {
-            builtin typeset fifo_default="$(</dev/fd/0)"
-        }  <<-'FIFO'
-FZF_FS_CONFIG_DIR="$1";
-
-exec 9<>"${FZF_FS_CONFIG_DIR}/daemon/response.fifo";
-exec 7<>"${FZF_FS_CONFIG_DIR}/daemon/LOG";
-
-command printf '%s' "${0}: Info: Starting daemon with pid: '${$}' ... " 1>&2;
-
-daemon[0]="$$";
-builtin typeset -p daemon > "${FZF_FS_CONFIG_DIR}/daemon/info"
-
-builtin . "${FZF_FS_CONFIG_DIR}/default/lib/daemon.sh";
-FzfFsSession FzfFsSession__register_stored_sessions;
-
-while builtin read -r
-do
-    case "$REPLY" in
-        *create_buffer* | *create_session* | *register_client* | *update_cwd* | *update_env* | *attend_session* | *restore_session* )
-            FZF_FS_CLIENT="${REPLY%% *}";
-            builtin eval "FzfFsSession FzfFsSession__${REPLY#* }";
-            FzfFsSession FzfFsSession__return_status "$?"
-        ;;
-        *)
-            command printf '%s\n' "${0}: Error: Unknown request: '${REPLY}'"
-        ;;
-    esac;
-done < "${FZF_FS_CONFIG_DIR}/daemon/request.fifo" 1>&7 2>&1
-FIFO
-
-        command printf '%s\n' "#!/usr/bin/env bash" "$fifo_default" > "${FZF_FS_CONFIG_DIR}/default/lib/fzf-fs-fifo.sh"
-    };
-
-    function FzfFsInit__init_macros ()
-    {
+__fzf_fs_init_macros ()
+{
         command printf '%s' "Creating ${FZF_FS_CONFIG_DIR}/default/etc/macros ... " 1>&2;
 
         builtin unset -v macros;
+
         {
-            builtin typeset macros="$(</dev/fd/0)"
+                builtin typeset macros="$(</dev/fd/0)"
         }  <<-'MACROS'
 //[%][d]/${cwd[3]}
 //[%][s]/${file}
 MACROS
 
         command printf '%s\n' "#!/usr/bin/env bash" "$macros" >> "${FZF_FS_CONFIG_DIR}/default/etc/macros"
-    };
+};
 
-    function FzfFsInit__main ()
-    {
+__fzf_fs_init_main ()
+{
         builtin typeset FZF_FS_CONFIG_DIR="${FZF_FS_CONFIG_DIR:-${XDG_CONFIG_HOME:-${HOME}/.config}/fzf-fs.d}";
 
-        if [[ -e "$FZF_FS_CONFIG_DIR" ]]; then
-            command printf '%s\n' "${source}:Error:80: Directory existing: '${FZF_FS_CONFIG_DIR}'" 1>&2;
-            builtin return 80;
+        if [[ -e "$FZF_FS_CONFIG_DIR" ]]
+        then
+                command printf '%s\n' "${source}:Error:80: Directory existing: '${FZF_FS_CONFIG_DIR}'" 1>&2;
+                builtin return 80;
         else
-            command mkdir -p -m 755 "${FZF_FS_CONFIG_DIR}/"{default/{bin/console/set,etc,lib},user};
-            command printf '%s\n' "Initializing fzf-fs config directory ${FZF_FS_CONFIG_DIR}/ ... " 1>&2;
+                command mkdir -p -m 755 "${FZF_FS_CONFIG_DIR}/"{default/{bin/console/set,etc,lib},user};
+                command printf '%s\n' "Initializing fzf-fs config directory ${FZF_FS_CONFIG_DIR}/ ... " 1>&2;
         fi;
 
         builtin unset -f __ls __ls_color;
@@ -2143,57 +1944,36 @@ MACROS
         __ls_set_aliases "FZF_FS_LS_COMMAND" "__ls";
         __ls_set_aliases "FZF_FS_LS_COMMAND_COLOR" "__ls_color";
 
-        FzfFsInit__init_console;
-        FzfFsInit__init_console_set;
-        FzfFsInit__init_env && command printf '%s\n' "Done" 1>&2;
-        FzfFsInit__init_flags && command printf '%s\n' "Done" 1>&2;
-        FzfFsInit__init_keybindings && command printf '%s\n' "Done" 1>&2;
-        FzfFsInit__init_macros && command printf '%s\n' "Done" 1>&2;
-        FzfFsInit__init_lib;
-        FzfFsInit__init_lib_fifo && command printf '%s\n' "Done" 1>&2;
+        __fzf_fs_init_console;
+        __fzf_fs_init_console_set;
+        __fzf_fs_init_env && command printf '%s\n' "Done" 1>&2;
+        __fzf_fs_init_flags && command printf '%s\n' "Done" 1>&2;
+        __fzf_fs_init_keybindings && command printf '%s\n' "Done" 1>&2;
+        __fzf_fs_init_macros && command printf '%s\n' "Done" 1>&2;
+        __fzf_fs_init_lib
 
         builtin return 0
-    };
+};
 
-    # -- UTILS.
+# -- MAIN.
 
-    function FzfFsInit__san ()
-    {
-        case "$1" in
-            -[fn])
-                IFS=" " builtin unset ${*}
-            ;;
-            *)
-                IFS=" " builtin unset -v ${*}
-        esac
-    };
+builtin . ls-wrapper.sh;
 
-    # -- SOURCE.
+builtin unset -v ret;
+builtin typeset -i ret;
 
-    builtin . ls-wrapper.sh;
+__fzf_fs_init_main "$@";
+ret="$?";
 
-    # -- MAIN.
-
-    FzfFsInit__san ret;
-    int ret;
-
-    FzfFsInit__main "$@";
-
-    ret="$?";
-
-    # -- POST.
-
-    FzfFsInit__san -f \
-        FzfFsInit__init_console \
-        FzfFsInit__init_console_set \
-        FzfFsInit__init_env \
-        FzfFsInit__init_flags \
-        FzfFsInit__init_keybindings \
-        FzfFsInit__init_macros \
-        FzfFsInit__init_lib \
-        FzfFsInit__init_lib_fifo \
-        FzfFsInit__main \
-        FzfFsInit__san \
+builtin unset -f \
+        __fzf_fs_init_console \
+        __fzf_fs_init_console_set \
+        __fzf_fs_init_env \
+        __fzf_fs_init_flags \
+        __fzf_fs_init_keybindings \
+        __fzf_fs_init_macros \
+        __fzf_fs_init_lib \
+        __fzf_fs_init_main \
         __ls_do \
         __ls_file_print \
         __ls_find_inode \
@@ -2203,7 +1983,6 @@ MACROS
         __ls_perform \
         __ls_remove_color \
         __ls_set_aliases \
-        __ls_upvar \;
+        __ls_upvar ;
 
-    builtin return "$ret"
-}
+builtin return "$ret"

@@ -1,21 +1,21 @@
 #!/usr/bin/env bash
 if [[ "$1" == \-?* ]]; then
-    builtin unset -v OPTIND opt;
-    builtin typeset OPTIND=1 opt;
-    while builtin getopts ":fkt" opt "$1"; do
-        case "$opt" in
-            "f")
-                console[4]=1
-            ;;
-            "k")
-                console[5]=1
-            ;;
-            "t")
-                console[6]=1
-            ;;
-        esac
-    done;
-    builtin return 0;
+        builtin unset -v OPTIND opt;
+        builtin typeset OPTIND=1 opt;
+        while builtin getopts ":fkt" opt "$1"; do
+                case "$opt" in
+                        "f")
+                                console[4]=1
+                        ;;
+                        "k")
+                                console[5]=1
+                        ;;
+                        "t")
+                                console[6]=1
+                        ;;
+                esac
+        done;
+        builtin return 0;
 else
-    builtin return 1;
+        builtin return 1;
 fi

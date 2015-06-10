@@ -27,21 +27,10 @@ FzfFsPrepareMksh ()
         IFS=" " builtin typeset s="$*";
         IFS=" " builtin print -r -- "${s@Q}"
     };
-    function FzfFsPrepareMksh__san () 
-    { 
-        case "$1" in 
-            -[fn])
-                IFS=" " builtin unset ${*}
-            ;;
-            *)
-                IFS=" " builtin unset -v ${*}
-            ;;
-        esac
-    };
-    FzfFsPrepareMksh__san ret;
+    builtin unset -v ret;
     builtin typeset -i ret;
     FzfFsPrepareMksh__main "$@";
     ret="$?";
-    FzfFsPrepareMksh__san -f FzfFsPrepareMksh__main FzfFsPrepareMksh__san;
+    builtin unset -f FzfFsPrepareMksh__main;
     builtin return "$ret"
 }

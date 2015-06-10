@@ -43,98 +43,98 @@ builtin alias table='builtin typeset -A'
 
 __fzffs_clean_confdir ()
 {
-    command rm -r "${FZF_FS_CONFIG_DIR}/browser"
+        command rm -r "${FZF_FS_CONFIG_DIR}/browser"
 }
 
 __fzffs_clean_env ()
 {
-    builtin typeset -x \
-        FZF_DEFAULT_COMMAND="$FZF_DEFAULT_COMMAND_OLD" \
-        FZF_DEFAULT_OPTS="$FZF_DEFAULT_OPTS_OLD" \
-        LC_COLLATE="$LC_COLLATE_OLD";
+        builtin typeset -x \
+                FZF_DEFAULT_COMMAND="$FZF_DEFAULT_COMMAND_OLD" \
+                FZF_DEFAULT_OPTS="$FZF_DEFAULT_OPTS_OLD" \
+                LC_COLLATE="$LC_COLLATE_OLD";
 
-    builtin unset -v \
-        FZF_DEFAULT_COMMAND_OLD \
-        FZF_DEFAULT_OPTS_OLD \
-        FZF_FS_BASH_OPTS_OLD \
-        FZF_FS_GLOBINORE_OLD \
-        FZF_FS_ZSH_OPTS_OLD \
-        LC_COLLATE_OLD;
+        builtin unset -v \
+                FZF_DEFAULT_COMMAND_OLD \
+                FZF_DEFAULT_OPTS_OLD \
+                FZF_FS_BASH_OPTS_OLD \
+                FZF_FS_GLOBINORE_OLD \
+                FZF_FS_ZSH_OPTS_OLD \
+                LC_COLLATE_OLD;
 }
 
 __fzffs_clean_funcs ()
 {
-    builtin unset -f \
-        __fzf_wrapper \
-        __fzffs_browser \
-        __fzffs_browser_enter \
-        __fzffs_browser_find \
-        __fzffs_browser_parse_pwd \
-        __fzffs_browser_parse_selection \
-        __fzffs_buffer \
-        __fzffs_clean_confdir \
-        __fzffs_clean_env \
-        __fzffs_clean_funcs \
-        __fzffs_clean_sh \
-        __fzffs_command_ls \
-        __fzffs_command_ls_color \
-        __fzffs_console \
-        __fzffs_console_quit_session \
-        __fzffs_fzf \
-        __fzffs_help \
-        __fzffs_init \
-        __fzffs_keybindings \
-        __fzffs_list \
-        __fzffs_main \
-        __fzffs_on_quit \
-        __fzffs_on_reload \
-        __fzffs_prepare_bash \
-        __fzffs_prepare_mksh \
-        __fzffs_prepare_zsh \
-        __fzffs_prompt \
-        __fzffs_quit_sh \
-        __fzffs_select \
-        __fzffs_util_echo \
-        __fzffs_util_echoE \
-        __fzffs_util_echon \
-        __fzffs_util_fifo_pull \
-        __fzffs_util_ls_do \
-        __fzffs_util_parse_flags \
-        __fzffs_util_parse_macros \
-        __fzffs_util_print_shortcuts \
-        __fzffs_util_printfq \
-        __fzffs_version \
-        __fzffs_visual \
-        __ls \
-        __ls_color \
-        __ls_do \
-        __ls_file_print \
-        __ls_find_inode \
-        __ls_get_checksum \
-        __ls_get_inode \
-        __ls_mkdir \
-        __ls_perform \
-        __ls_remove_color \
-        __ls_set_aliases \
-        __ls_upvar \
-        __macro_create \
-        __macro_do \
-        __spath_do \
-        __spath_get_cols;
+        builtin unset -f \
+                __fzf_wrapper \
+                __fzffs_browser \
+                __fzffs_browser_enter \
+                __fzffs_browser_find \
+                __fzffs_browser_parse_pwd \
+                __fzffs_browser_parse_selection \
+                __fzffs_buffer \
+                __fzffs_clean_confdir \
+                __fzffs_clean_env \
+                __fzffs_clean_funcs \
+                __fzffs_clean_sh \
+                __fzffs_command_ls \
+                __fzffs_command_ls_color \
+                __fzffs_console \
+                __fzffs_console_quit_session \
+                __fzffs_fzf \
+                __fzffs_help \
+                __fzffs_init \
+                __fzffs_keybindings \
+                __fzffs_list \
+                __fzffs_main \
+                __fzffs_on_quit \
+                __fzffs_on_reload \
+                __fzffs_prepare_bash \
+                __fzffs_prepare_mksh \
+                __fzffs_prepare_zsh \
+                __fzffs_prompt \
+                __fzffs_quit_sh \
+                __fzffs_select \
+                __fzffs_util_echo \
+                __fzffs_util_echoE \
+                __fzffs_util_echon \
+                __fzffs_util_fifo_pull \
+                __fzffs_util_ls_do \
+                __fzffs_util_parse_flags \
+                __fzffs_util_parse_macros \
+                __fzffs_util_print_shortcuts \
+                __fzffs_util_printfq \
+                __fzffs_version \
+                __fzffs_visual \
+                __ls \
+                __ls_color \
+                __ls_do \
+                __ls_file_print \
+                __ls_find_inode \
+                __ls_get_checksum \
+                __ls_get_inode \
+                __ls_mkdir \
+                __ls_perform \
+                __ls_remove_color \
+                __ls_set_aliases \
+                __ls_upvar \
+                __macro_create \
+                __macro_do \
+                __spath_do \
+                __spath_get_cols;
 }
 
 __fzffs_on_quit ()
 {
-    __fzffs_clean_sh;
-    __fzffs_clean_confdir;
-    __fzffs_clean_funcs;
-    __fzffs_clean_env;
+        __fzffs_clean_sh;
+        __fzffs_clean_confdir;
+        __fzffs_clean_funcs;
+        __fzffs_clean_env;
 } 1> /dev/null 2>&1
 
 __fzffs_on_reload ()
 {
-    __fzffs_clean_confdir;
-    builtin unset -v \
-        FZF_FS_BUFFER \
-        FZF_FS_BUFFER_OLD
+        __fzffs_clean_confdir;
+        builtin unset -v \
+                FZF_FS_BUFFER \
+                FZF_FS_BUFFER_OLD
 } 1> /dev/null 2>&1

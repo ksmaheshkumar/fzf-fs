@@ -98,7 +98,7 @@ SUM
     };
     function FzfFsCore__fzf () 
     { 
-        FzfFsCore__san prompt;
+        builtin unset -v prompt;
         builtin typeset +i prompt;
         case "$1" in 
             navigator)
@@ -207,7 +207,7 @@ SUM
     };
     function FzfFsCore__prompt () 
     { 
-        FzfFsCore__san cols prompt_leng;
+        builtin unset -v cols prompt_leng;
         builtin typeset -i prompt_leng;
         builtin typeset -i cols;
         cols="${COLUMNS:-$(__spath_get_cols :)}";
@@ -256,18 +256,7 @@ SUM
         FzfFsCore__dump_env | command tee;
         "${FZF_FS_CONFIG_DIR}/cache/clients/${FZF_FS_CLIENT}/env.client" > "${FZF_FS_CONFIG_DIR}/cache/sessions/${FZF_FS_SESSION}/var/env.session"
     };
-    function FzfFsCore__san () 
-    { 
-        case "$1" in 
-            -[fn])
-                IFS=" " builtin unset ${*}
-            ;;
-            *)
-                IFS=" " builtin unset -v ${*}
-            ;;
-        esac
-    };
-    FzfFsCore__san ret;
+    builtin unset -v ret;
     builtin typeset -i ret;
     FzfFsCore__main "$@";
     ret="$?";
